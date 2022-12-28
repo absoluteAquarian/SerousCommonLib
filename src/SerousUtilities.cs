@@ -1,6 +1,6 @@
 using Terraria.ModLoader;
 
 namespace SerousCommonLib {
-	public class SerousCommonLib : Mod {
+	public class SerousUtilities : Mod {
 	}
 }
