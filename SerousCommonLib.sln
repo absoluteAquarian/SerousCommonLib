@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerousCommonLib", "SerousCommonLib.csproj", "{B7790FB2-2AE9-46EF-9605-FDDC47DEAAAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7790FB2-2AE9-46EF-9605-FDDC47DEAAAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7790FB2-2AE9-46EF-9605-FDDC47DEAAAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7790FB2-2AE9-46EF-9605-FDDC47DEAAAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7790FB2-2AE9-46EF-9605-FDDC47DEAAAD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {92F243A7-B0D3-4DC4-9DF0-4A94F09C1479}
+	EndGlobalSection
+EndGlobal

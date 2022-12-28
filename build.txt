@@ -1,0 +1,3 @@
+displayName = absoluteAquarian's Common Library
+author = absoluteAquarian
+version = 1.0
