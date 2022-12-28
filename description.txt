@@ -3,4 +3,5 @@ The common library for absoluteAquarian's various mods.
 Many features are included in this mod, including but not limited to:
 - IL/On edit helpers
 - Type extensions
+- UI element types
 - and more!
