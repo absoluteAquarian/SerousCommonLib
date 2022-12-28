@@ -1,7 +1,6 @@
 The common library for absoluteAquarian's various mods.
 
 Many features are included in this mod, including but not limited to:
-- ILCursor extensions
 - IL/On edit helpers
 - Type extensions
-- A faster alternative to reflection
+- and more!
