@@ -55,6 +55,17 @@ namespace SerousCommonLib.UI {
 			};
 			header.Append(closeButton);
 
+			var resetButton = new UITextPanel<LocalizedText>(Language.GetText("Mods.SerousCommonLib.Reset"));
+			resetButton.SetPadding(7);
+			resetButton.Width.Set(100, 0);
+			resetButton.Left.Set(-45 - 100, 1);
+			resetButton.BackgroundColor.A = 255;
+			resetButton.OnClick += (evt, element) => {
+				SoundEngine.PlaySound(SoundID.MenuOpen);
+				OnMenuReset?.Invoke();
+			};
+			header.Append(resetButton);
+
 			viewArea = new();
 			viewArea.Top.Set(38, 0);
 			viewArea.Width.Set(0, 1f);
