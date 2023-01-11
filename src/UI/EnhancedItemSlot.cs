@@ -122,14 +122,14 @@ namespace SerousCommonLib.UI {
 						Main.mouseLeft = Main.mouseLeftRelease = Main.mouseRight = Main.mouseRightRelease = false;
 
 					// Handle handles all the click and hover actions based on the context.
-					Item item = StoredItem.Clone();
-					storedItemBeforeHandle = item;
+					Item item = StoredItem;
+					storedItemBeforeHandle = item.Clone();
 					dummy[10] = item;
 					ItemSlot.Handle(dummy, Context, 10);
-					item = dummy[10];
+					storedItem = dummy[10];
 
 					if (ItemChanged || ItemTypeChanged)
-						OnItemChanged?.Invoke(item);
+						OnItemChanged?.Invoke(storedItem);
 
 					Main.mouseLeft = oldLeft;
 					Main.mouseLeftRelease = oldLeftRelease;
