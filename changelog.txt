@@ -1,3 +1,6 @@
 ﻿[h1]v1.0.1.1[/h1]
+You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.1.1]GitHub repository[/url]
 
 - Fixed a typo which caused localization entries to not display properly
+- Added XML summaries to most types in the mod
+- Added new helper types
