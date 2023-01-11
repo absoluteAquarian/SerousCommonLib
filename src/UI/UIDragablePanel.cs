@@ -9,7 +9,11 @@ using Terraria.Localization;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI {
+	/// <summary>
+	/// An object representing a panel with "page tabs" that can be moved around
+	/// </summary>
 	public class UIDragablePanel : UIPanel {
+		#pragma warning disable CS1591
 		public const float cornerPadding = 12;
 
 		// Stores the offset from the top left of the UIPanel while dragging.

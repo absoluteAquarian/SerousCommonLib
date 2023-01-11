@@ -7,19 +7,41 @@ using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace SerousCommonLib.API {
+	/// <summary>
+	/// A helper class for manipulating tooltips
+	/// </summary>
 	public static class TooltipHelper {
+		/// <summary>
+		/// Finds the first <see cref="TooltipLine"/> instance in <paramref name="tooltips"/> which contains the phrase <paramref name="searchPhrase"/>, then replaces it with <paramref name="replacePhrase"/>
+		/// </summary>
+		/// <param name="tooltips">The list of tooltips</param>
+		/// <param name="searchPhrase">The search text to look for</param>
+		/// <param name="replacePhrase">The replacement text</param>
 		public static void FindAndModify(List<TooltipLine> tooltips, string searchPhrase, string replacePhrase) {
 			int searchIndex = tooltips.FindIndex(t => t.Text.Contains(searchPhrase));
 			if (searchIndex >= 0)
 				tooltips[searchIndex].Text = tooltips[searchIndex].Text.Replace(searchPhrase, replacePhrase);
 		}
 
+		/// <summary>
+		/// Finds the first <see cref="TooltipLine"/> instance in <paramref name="tooltips"/> whose text is exactly equal to <paramref name="fullLine"/> and removes it
+		/// </summary>
+		/// <param name="tooltips">The list of tooltips</param>
+		/// <param name="fullLine">The line to search for</param>
 		public static void FindAndRemoveLine(List<TooltipLine> tooltips, string fullLine) {
 			int searchIndex = tooltips.FindIndex(t => t.Text == fullLine);
 			if (searchIndex >= 0)
 				tooltips.RemoveAt(searchIndex);
 		}
 
+		/// <summary>
+		/// Finds the forst <see cref="TooltipLine"/> instance in <paramref name="tooltips"/> whose text is exactly equal to <paramref name="searchLine"/>, removes it, then adds a series of tooltip lines starting where it was located
+		/// </summary>
+		/// <param name="mod">The mod adding the tooltips</param>
+		/// <param name="tooltips">The list of tooltips</param>
+		/// <param name="searchLine">The line to search for</param>
+		/// <param name="lineNames">A function taking an integer and returning a line of text</param>
+		/// <param name="replaceLines">The lines to insert, separated by <c>'\n'</c></param>
 		public static void FindAndInsertLines(Mod mod, List<TooltipLine> tooltips, string searchLine, Func<int, string> lineNames, string replaceLines) {
 			int searchIndex = tooltips.FindIndex(t => t.Text == searchLine);
 			if (searchIndex >= 0) {

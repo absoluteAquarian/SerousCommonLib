@@ -1,3 +1,3 @@
-﻿[h1]v1.0.1[/h1]
+﻿[h1]v1.0.1.1[/h1]
 
-- Added missing logic for a "Reset" button in UIDragablePanel
+- Fixed a typo which caused localization entries to not display properly

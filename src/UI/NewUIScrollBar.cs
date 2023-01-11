@@ -4,12 +4,16 @@ using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI {
-	// A copy of Terraria's UIScrollbar, but with a few things exposed and modified slightly for convenience
+	/// <summary>
+	/// A copy of <see cref="UIScrollbar"/>, but modified for convenience
+	/// </summary>
 	public class NewUIScrollbar : UIElement {
+		#pragma warning disable CS1591
 		private float _viewPosition;
 
 		public float ViewSize { get; private set; } = 1f;

@@ -4,10 +4,25 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace SerousCommonLib.API {
+	/// <summary>
+	/// A helper structure for quickly modifying branching labels
+	/// </summary>
 	public readonly struct TargetContext {
+		/// <summary>
+		/// The cursor performing edits
+		/// </summary>
 		public readonly ILCursor cursor;
+		/// <summary>
+		/// The index of the instruction to redirect <see cref="incomingLabels"/> and <see cref="incomingHandlers"/> to
+		/// </summary>
 		public readonly int targetIndex;
+		/// <summary>
+		/// A list of branching labels
+		/// </summary>
 		public readonly IReadOnlyList<ILLabel> incomingLabels;
+		/// <summary>
+		/// A list of branching labels for try-catch-finally clauses
+		/// </summary>
 		public readonly IReadOnlyList<ExceptionHandler> incomingHandlers;
 
 		public TargetContext(ILCursor c) {
@@ -18,6 +33,9 @@ namespace SerousCommonLib.API {
 			targetIndex = c.Index;
 		}
 
+		/// <summary>
+		/// Updates the instructions in <see cref="cursor"/> whose target's instruction index has been modified
+		/// </summary>
 		public void UpdateInstructions() {
 			Instruction target = cursor.Instrs[targetIndex];
 				

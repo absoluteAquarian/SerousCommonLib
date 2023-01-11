@@ -12,9 +12,18 @@ namespace SerousCommonLib.API {
 		public static IEnumerable<ExceptionHandler> IncomingHandlers(this ILCursor c)
 			=> !c.Body.HasExceptionHandlers ? Array.Empty<ExceptionHandler>() : c.Body.ExceptionHandlers.Where(e => e.HandlerEnd == c.Next);
 
+		/// <summary>
+		/// Emits the IL equivalent of an "if" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterBlock">A label representing the a branching label to the instruction after this "if" block</param>
+		/// <param name="condition">The boolean condition within the "if" statement</param>
+		/// <param name="action">Write instructions that would go inside the "if" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
 		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Func<bool> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
 			=> c.EmitIfBlock(out targetAfterBlock, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
 
+		/// <inheritdoc cref="EmitIfBlock(ILCursor, out ILLabel, Func{bool}, Action{ILCursor}, ILLabel[])"/>
 		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
 			targetAfterBlock = c.DefineLabel();
 
@@ -35,17 +44,38 @@ namespace SerousCommonLib.API {
 			targetAfterBlock.Target = c.Next;
 		}
 
+		/// <summary>
+		/// Emits the IL equivalent of an "else if" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterIfBlock">A label representing the a branching label to the instruction after this "else if" block</param>
+		/// <param name="targetAfterEverything">A label representing where to jump to after executing this "else if" block's instructions</param>
+		/// <param name="condition">The boolean condition within the "else if" statement</param>
+		/// <param name="action">Write instructions that would go inside the "else if" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "else if" block</param>
 		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
 			=> c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
 
+		/// <inheritdoc cref="EmitElseIfBlock(ILCursor, out ILLabel, ILLabel, Func{bool}, Action{ILCursor}, ILLabel[])"/>
 		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
 			c.EmitIfBlock(out targetAfterIfBlock, condition, action, targetsToUpdate);
 			c.Emit(OpCodes.Br, targetAfterEverything);
 		}
 
+		/// <summary>
+		/// Emits the IL equivalent of an "if - else" chain
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterIfBlock">A label representing the a branching label to the instruction after the "if" block</param>
+		/// <param name="targetAfterEverything">A label representing where to jump to after executing the "if" block's instructions</param>
+		/// <param name="condition">The boolean condition within the "if" statement</param>
+		/// <param name="actionWhenTrueCondition">Write instructions that would go inside the "if" block here</param>
+		/// <param name="actionWhenFalseCondition">Write instructions that would go inside the "else" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
 		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, params ILLabel[] targetsToUpdate)
 			=> c.EmitIfElseBlock(out targetAfterIfBlock, out targetAfterEverything, condition, actionWhenTrueCondition, actionWhenFalseCondition, targetsToUpdate as IEnumerable<ILLabel>);
 
+		/// <inheritdoc cref="EmitIfElseBlock(ILCursor, out ILLabel, out ILLabel, Func{bool}, Action{ILCursor}, Action{ILCursor}, ILLabel[])"/>
 		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, IEnumerable<ILLabel> targetsToUpdate = null) {
 			targetAfterEverything = c.DefineLabel();
 			
@@ -60,9 +90,18 @@ namespace SerousCommonLib.API {
 			targetAfterIfBlock.Target = c.Instrs[start];
 		}
 
+		/// <summary>
+		/// Emits the IL equivalent  of an "if - else if - else" chain
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="blockEndTargets">A list of branching labels pointing where code flow should move to next when the condition for a block in this chain fails</param>
+		/// <param name="blocks">A list of structures representing the "if" and "else if" blocks in this chain</param>
+		/// <param name="elseBlockAction">Write the instructions that would go inside the "else" block here, or set this parameter to <see langword="null"/> to not generate an "else" block</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
 		public static void EmitIfElseChainBlock(this ILCursor c, out ILLabel[] blockEndTargets, ILElseIfBlock[] blocks, Action<ILCursor> elseBlockAction, params ILLabel[] targetsToUpdate)
 			=> c.EmitIfElseChainBlock(out blockEndTargets, blocks, elseBlockAction, targetsToUpdate as IEnumerable<ILLabel>);
 
+		/// <inheritdoc cref="EmitIfElseChainBlock(ILCursor, out ILLabel[], ILElseIfBlock[], Action{ILCursor}, ILLabel[])"/>
 		public static void EmitIfElseChainBlock(this ILCursor c, out ILLabel[] blockEndTargets, ILElseIfBlock[] blocks, Action<ILCursor> elseBlockAction, IEnumerable<ILLabel> targetsToUpdate = null) {
 			blockEndTargets = new ILLabel[blocks.Length + 1];
 			ILLabel targetAfterEverything = blockEndTargets[^1] = c.DefineLabel();
@@ -91,6 +130,14 @@ namespace SerousCommonLib.API {
 			targetAfterEverything.Target = c.Next;
 		}
 
+		/// <summary>
+		/// Emits the IL equivalent of a "for (start; condition; step)" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="init">Write the instructions that should go in the loop initialization here</param>
+		/// <param name="condition">Write the instructions that should go in the loop condition here.  The second argument is the branching label pointing to the start of <paramref name="body"/></param>
+		/// <param name="step">Write the instructions that should go in the loop step here</param>
+		/// <param name="body">Write instructions that should go in the body of the loop here</param>
 		public static void EmitForLoop(this ILCursor c, Action<ILCursor> init, Action<ILCursor, ILLabel> condition, Action<ILCursor> step, Action<ILCursor> body) {
 			ILLabel gotoStepCondition = c.DefineLabel();
 			ILLabel gotoBodyStart = c.DefineLabel();
@@ -115,6 +162,15 @@ namespace SerousCommonLib.API {
 			gotoStepCondition.Target = c.Instrs[conditionStart];
 		}
 
+		/// <summary>
+		/// Writes the IL equivalent of a "for (int i = <paramref name="start"/>; condition(i); i += <paramref name="step"/>)" block<br/>
+		/// This method is a specialized version of <see cref="EmitForLoop(ILCursor, Action{ILCursor}, Action{ILCursor, ILLabel}, Action{ILCursor}, Action{ILCursor})"/>
+		/// </summary>
+		/// <param name="c">The </param>
+		/// <param name="start">The starting value for the loop variable</param>
+		/// <param name="step">How much the loop variable should be incremented/decremented by per loop cycle</param>
+		/// <param name="condition">The condition for the loop variable</param>
+		/// <param name="body">The body of the loop</param>
 		public static void EmitSimpleForLoop(this ILCursor c, int start, int step, Func<int, bool> condition, Action<int> body) {
 			int local = c.Context.MakeLocalVariable<int>();
 

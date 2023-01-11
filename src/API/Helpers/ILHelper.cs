@@ -8,6 +8,9 @@ using Terraria;
 using Terraria.ModLoader;
 
 namespace SerousCommonLib.API {
+	/// <summary>
+	/// A helper class for manipulating and logging <see cref="ILCursor"/> objects
+	/// </summary>
 	public static class ILHelper {
 		internal static void PrepareInstruction(Instruction instr, out string offset, out string opcode, out string operand) {
 			offset = $"IL_{instr.Offset:X5}:";
@@ -84,6 +87,10 @@ namespace SerousCommonLib.API {
 			} while (index < c.Instrs.Count);
 		}
 
+		/// <summary>
+		/// Updates the instruction offsets within <paramref name="c"/>
+		/// </summary>
+		/// <param name="c">The cursor</param>
 		public static void UpdateInstructionOffsets(ILCursor c) {
 			var instrs = c.Instrs;
 			int curOffset = 0;
@@ -165,8 +172,22 @@ namespace SerousCommonLib.API {
 					throw new NullReferenceException($"Member reference \"{identifier}\" is null");
 		}
 
+		/// <summary>
+		/// A delegate taking in a cursor and default error message as input and returns if the edit was successful
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="badReturnReason">The error message to display when the edit fails</param>
+		/// <returns></returns>
 		public delegate bool PatchingContextDelegate(ILCursor c, ref string badReturnReason);
 
+		/// <summary>
+		/// This method logs the instructions within the method tied to <paramref name="il"/>, invokes <paramref name="doEdits"/> and then logss the instructions within the method again
+		/// </summary>
+		/// <param name="il">The context</param>
+		/// <param name="patchSource">Which mod is performing the edits.  This affects the output directory of the file</param>
+		/// <param name="doEdits">The delegate used to perform the edit</param>
+		/// <remarks>The generated log file will be at <c>Documents/My Games/Terraria/tModLoader/aA Mods/ModName/</c></remarks>
+		/// <exception cref="Exception"/>
 		public static void CommonPatchingWrapper(ILContext il, Mod patchSource, PatchingContextDelegate doEdits) {
 			ArgumentNullException.ThrowIfNull(doEdits);
 

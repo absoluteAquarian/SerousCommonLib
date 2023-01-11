@@ -4,12 +4,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.GameContent.UI.Elements;
 using Terraria.GameInput;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI {
-	//Basically a copy of UIList that uses a NewUIScrollbar instead of a UIScrollbar
+	/// <summary>
+	/// A copy of <see cref="UIList"/> that uses a <see cref="NewUIScrollbar"/> instead of a <see cref="UIScrollbar"/>
+	/// </summary>
 	public class NewUIList : UIElement, IEnumerable<UIElement>, IEnumerable {
+		#pragma warning disable CS1591
 		public delegate bool ElementSearchMethod(UIElement element);
 
 		private class UIInnerList : UIElement {

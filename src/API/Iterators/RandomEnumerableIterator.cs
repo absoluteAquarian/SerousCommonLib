@@ -8,6 +8,7 @@ namespace SerousCommonLib.API.Iterators {
 	/// </summary>
 	/// <typeparam name="TSource">The type of the source enumerable.</typeparam>
 	public class RandomEnumerableIterator<TSource> : Iterator<TSource> {
+		#pragma warning disable CS1591
 		private readonly IEnumerable<TSource> _source;
 		private readonly Func<int, int> _getRandomIndex;
 		private readonly bool _allowRepetitions;

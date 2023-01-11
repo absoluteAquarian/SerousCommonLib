@@ -2,7 +2,13 @@
 using System.Linq;
 
 namespace SerousCommonLib.API {
+	/// <summary>
+	/// A helper class containing extension methods for certain types
+	/// </summary>
 	public static partial class Extensions {
+		/// <summary>
+		/// Gets a formatted string representing <paramref name="type"/>
+		/// </summary>
 		public static string GetSimplifiedGenericTypeName(this Type type) {
 			//Handle all invalid cases here:
 			if (type.FullName is null)
