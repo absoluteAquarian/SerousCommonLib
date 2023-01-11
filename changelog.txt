@@ -1,4 +1,4 @@
-﻿[h1]v1.0.1.3[/h1]
-You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.1.2]GitHub repository[/url]
+﻿[h1]v1.0.1.4[/h1]
+You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.1.4]GitHub repository[/url]
 
-- Fixed yet another bug in EnhancedItemSlot which caused items to disappear
+- Fixed yet another bug in EnhancedItemSlot where it used the wrong Item object for the OnItemChanged event

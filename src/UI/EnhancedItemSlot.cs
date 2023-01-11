@@ -129,7 +129,7 @@ namespace SerousCommonLib.UI {
 					storedItem = dummy[10];
 
 					if (ItemChanged || ItemTypeChanged)
-						OnItemChanged?.Invoke(storedItem);
+						OnItemChanged?.Invoke(storedItemBeforeHandle);
 
 					Main.mouseLeft = oldLeft;
 					Main.mouseLeftRelease = oldLeftRelease;
