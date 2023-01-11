@@ -1,7 +1,7 @@
 The common library for absoluteAquarian's various mods.
 
 The DLL, PDB and XML files for this mod can be found at:
-https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.1.1
+https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.1.2
 
 Many features are included in this mod, including but not limited to:
 - IL/On edit helpers
