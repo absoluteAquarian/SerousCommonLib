@@ -32,19 +32,19 @@ namespace SerousCommonLib.API {
 		}
 
 		/// <summary>
-        /// Logs information about an <see cref="ILCursor" /> object's method body. <br />
-        /// </summary>
-        /// <param name="c">The IL editing cursor</param>
-        /// <param name="logFilePath">The destination file</param>
+		/// Logs information about an <see cref="ILCursor" /> object's method body. <br />
+		/// </summary>
+		/// <param name="c">The IL editing cursor</param>
+		/// <param name="logFilePath">The destination file</param>
 		public static void LogMethodBody(this ILCursor c, string logFilePath) {
-            // Ensure that the instructions listed have the correct offset
-            UpdateInstructionOffsets(c);
+			// Ensure that the instructions listed have the correct offset
+			UpdateInstructionOffsets(c);
 
-            int index = 0;
+			int index = 0;
 
-            Directory.CreateDirectory(new FileInfo(logFilePath).DirectoryName!);
+			Directory.CreateDirectory(new FileInfo(logFilePath).DirectoryName!);
 
-            FileStream file = File.Open(logFilePath, FileMode.Create);
+			FileStream file = File.Open(logFilePath, FileMode.Create);
 
 			using StreamWriter writer = new(file);
 
@@ -120,9 +120,9 @@ namespace SerousCommonLib.API {
 		}
 
 		/// <summary>
-        /// Initializes automatic dumping of MonoMod assemblies to the tModLoader install directory.<br/>
-        /// Currently does not work due to an issue in MonoMod.
-        /// </summary>
+		/// Initializes automatic dumping of MonoMod assemblies to the tModLoader install directory.<br/>
+		/// Currently does not work due to an issue in MonoMod.
+		/// </summary>
 		public static void InitMonoModDumps() {
 			//see: https://discord.com/channels/103110554649894912/445276626352209920/953380019072270419
 
@@ -137,19 +137,19 @@ namespace SerousCommonLib.API {
 		}
 
 		/// <summary>
-        /// De-initializes automatic dumping of MonoMod assemblies to the tModLoader install directory.<br/>
-        /// Currently does not work due to an issue in MonoMod.
-        /// </summary>
+		/// De-initializes automatic dumping of MonoMod assemblies to the tModLoader install directory.<br/>
+		/// Currently does not work due to an issue in MonoMod.
+		/// </summary>
 		public static void DeInitMonoModDumps() {
 			Environment.SetEnvironmentVariable("MONOMOD_DMD_DEBUG", "0");
 		}
 
 		/// <summary>
-        /// Gets the instruction at the given index, represented as a string.
-        /// </summary>
-        /// <param name="c">The IL cursor.</param>
-        /// <param name="index">The instruction index.</param>
-        /// <returns>The string-represented instruction.</returns>
+		/// Gets the instruction at the given index, represented as a string.
+		/// </summary>
+		/// <param name="c">The IL cursor.</param>
+		/// <param name="index">The instruction index.</param>
+		/// <returns>The string-represented instruction.</returns>
 		public static string GetInstructionString(ILCursor c, int index) {
 			if (index < 0 || index >= c.Instrs.Count)
 				return "ERROR: Index out of bounds.";
@@ -160,12 +160,12 @@ namespace SerousCommonLib.API {
 		}
 
 		/// <summary>
-        /// Verifies that each <see cref="MemberInfo" /> is not null.
-        /// </summary>
-        /// <param name="memberInfos">
-        /// An array of <see cref="MemberInfo" /> objects, paired with an identifier used when throwing the <see cref="NullReferenceException" /> if the object is null.
-        /// </param>
-        /// <exception cref="NullReferenceException"/>
+		/// Verifies that each <see cref="MemberInfo" /> is not null.
+		/// </summary>
+		/// <param name="memberInfos">
+		/// An array of <see cref="MemberInfo" /> objects, paired with an identifier used when throwing the <see cref="NullReferenceException" /> if the object is null.
+		/// </param>
+		/// <exception cref="NullReferenceException"/>
 		public static void EnsureAreNotNull(params (MemberInfo member, string identifier)[] memberInfos) {
 			foreach (var (member, identifier) in memberInfos)
 				if (member is null)
