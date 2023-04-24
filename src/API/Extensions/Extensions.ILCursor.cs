@@ -21,15 +21,67 @@ namespace SerousCommonLib.API {
 		/// <param name="action">Write instructions that would go inside the "if" block here</param>
 		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
 		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Func<bool> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
-			=> c.EmitIfBlock(out targetAfterBlock, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
+			=> c.EmitIfBlock(out targetAfterBlock, null, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
 
 		/// <inheritdoc cref="EmitIfBlock(ILCursor, out ILLabel, Func{bool}, Action{ILCursor}, ILLabel[])"/>
-		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
+		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null)
+			=> c.EmitIfBlock(out targetAfterBlock, null, condition, action, targetsToUpdate);
+
+		/// <summary>
+		/// Emits the IL equivalent of an "if" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterBlock">A label representing the a branching label to the instruction after this "if" block</param>
+		/// <param name="preConditionAction">An optional function to invoke before emitting the delegate for <paramref name="condition"/></param>
+		/// <param name="condition">The boolean condition within the "if" statement</param>
+		/// <param name="action">Write instructions that would go inside the "if" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
+		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Action<ILCursor> preConditionAction, Func<bool> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
+			=> c.EmitIfBlock(out targetAfterBlock, preConditionAction, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
+
+		/// <inheritdoc cref="EmitIfBlock(ILCursor, out ILLabel, Action{ILCursor}, Func{bool}, Action{ILCursor}, ILLabel[])"/>
+		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Action<ILCursor> preConditionAction, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
 			targetAfterBlock = c.DefineLabel();
 
 			int index = c.Index;
+
+			preConditionAction?.Invoke(c);
+
 			// if (condition) {
 			c.EmitDelegate(condition);
+			c.Emit(OpCodes.Brfalse, targetAfterBlock);
+			action(c);
+			// }
+
+			if (targetsToUpdate is not null) {
+				Instruction target = c.Instrs[index];
+
+				foreach (ILLabel targetToUpdate in targetsToUpdate)
+					targetToUpdate.Target = target;
+			}
+
+			targetAfterBlock.Target = c.Next;
+		}
+
+		/// <summary>
+		/// Emits the IL equivalent of an "if" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterBlock">A label representing the a branching label to the instruction after this "if" block</param>
+		/// <param name="condition">The delegate for emitting the "if" condition.  A <see langword="bool"/> value is expected to be on the stack after this delegate's instructions are executed</param>
+		/// <param name="action">Write instructions that would go inside the "if" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
+		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Action<ILCursor> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
+			=> c.EmitIfBlock(out targetAfterBlock, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
+		
+		/// <inheritdoc cref="EmitIfBlock(ILCursor, out ILLabel, Action{ILCursor}, Action{ILCursor}, ILLabel[])"/>
+		public static void EmitIfBlock(this ILCursor c, out ILLabel targetAfterBlock, Action<ILCursor> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
+			targetAfterBlock = c.DefineLabel();
+
+			int index = c.Index;
+
+			// if (condition) {
+			condition(c);
 			c.Emit(OpCodes.Brfalse, targetAfterBlock);
 			action(c);
 			// }
@@ -54,10 +106,45 @@ namespace SerousCommonLib.API {
 		/// <param name="action">Write instructions that would go inside the "else if" block here</param>
 		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "else if" block</param>
 		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
-			=> c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
+			=> c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, null, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
 
 		/// <inheritdoc cref="EmitElseIfBlock(ILCursor, out ILLabel, ILLabel, Func{bool}, Action{ILCursor}, ILLabel[])"/>
-		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
+		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null)
+			=> c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, null, condition, action, targetsToUpdate);
+
+		/// <summary>
+		/// Emits the IL equivalent of an "else if" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterIfBlock">A label representing the a branching label to the instruction after this "else if" block</param>
+		/// <param name="targetAfterEverything">A label representing where to jump to after executing this "else if" block's instructions</param>
+		/// <param name="preConditionAction">An optional function to invoke before emitting the delegate for <paramref name="condition"/></param>
+		/// <param name="condition">The boolean condition within the "else if" statement</param>
+		/// <param name="action">Write instructions that would go inside the "else if" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "else if" block</param>
+		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Action<ILCursor> preConditionAction, Func<bool> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
+			=> c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, preConditionAction, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
+
+		/// <inheritdoc cref="EmitElseIfBlock(ILCursor, out ILLabel, ILLabel, Action{ILCursor}, Func{bool}, Action{ILCursor}, ILLabel[])"/>
+		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Action<ILCursor> conditionAction, Func<bool> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
+			c.EmitIfBlock(out targetAfterIfBlock, conditionAction, condition, action, targetsToUpdate);
+			c.Emit(OpCodes.Br, targetAfterEverything);
+		}
+
+		/// <summary>
+		/// Emits the IL equivalent of an "else if" block
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterIfBlock">A label representing the a branching label to the instruction after this "else if" block</param>
+		/// <param name="targetAfterEverything">A label representing where to jump to after executing this "else if" block's instructions</param>
+		/// <param name="condition">The delegate for emitting the "if" condition.  A <see langword="bool"/> value is expected to be on the stack after this delegate's instructions are executed</param>
+		/// <param name="action">Write instructions that would go inside the "else if" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "else if" block</param>
+		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Action<ILCursor> condition, Action<ILCursor> action, params ILLabel[] targetsToUpdate)
+			=> c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, condition, action, targetsToUpdate as IEnumerable<ILLabel>);
+
+		/// <inheritdoc cref="EmitElseIfBlock(ILCursor, out ILLabel, ILLabel, Action{ILCursor}, Action{ILCursor}, ILLabel[])"/>
+		public static void EmitElseIfBlock(this ILCursor c, out ILLabel targetAfterIfBlock, ILLabel targetAfterEverything, Action<ILCursor> condition, Action<ILCursor> action, IEnumerable<ILLabel> targetsToUpdate = null) {
 			c.EmitIfBlock(out targetAfterIfBlock, condition, action, targetsToUpdate);
 			c.Emit(OpCodes.Br, targetAfterEverything);
 		}
@@ -73,10 +160,56 @@ namespace SerousCommonLib.API {
 		/// <param name="actionWhenFalseCondition">Write instructions that would go inside the "else" block here</param>
 		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
 		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, params ILLabel[] targetsToUpdate)
-			=> c.EmitIfElseBlock(out targetAfterIfBlock, out targetAfterEverything, condition, actionWhenTrueCondition, actionWhenFalseCondition, targetsToUpdate as IEnumerable<ILLabel>);
+			=> c.EmitIfElseBlock(out targetAfterIfBlock, out targetAfterEverything, null, condition, actionWhenTrueCondition, actionWhenFalseCondition, targetsToUpdate as IEnumerable<ILLabel>);
 
 		/// <inheritdoc cref="EmitIfElseBlock(ILCursor, out ILLabel, out ILLabel, Func{bool}, Action{ILCursor}, Action{ILCursor}, ILLabel[])"/>
-		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, IEnumerable<ILLabel> targetsToUpdate = null) {
+		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, IEnumerable<ILLabel> targetsToUpdate = null)
+			=> c.EmitIfElseBlock(out targetAfterIfBlock, out targetAfterEverything, null, condition, actionWhenTrueCondition, actionWhenFalseCondition, targetsToUpdate);
+
+		/// <summary>
+		/// Emits the IL equivalent of an "if - else" chain
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterIfBlock">A label representing the a branching label to the instruction after the "if" block</param>
+		/// <param name="targetAfterEverything">A label representing where to jump to after executing the "if" block's instructions</param>
+		/// <param name="preConditionAction">An optional function to invoke before emitting the delegate for <paramref name="condition"/></param>
+		/// <param name="condition">The boolean condition within the "if" statement</param>
+		/// <param name="actionWhenTrueCondition">Write instructions that would go inside the "if" block here</param>
+		/// <param name="actionWhenFalseCondition">Write instructions that would go inside the "else" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
+		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Action<ILCursor> preConditionAction, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, params ILLabel[] targetsToUpdate)
+			=> c.EmitIfElseBlock(out targetAfterIfBlock, out targetAfterEverything, preConditionAction, condition, actionWhenTrueCondition, actionWhenFalseCondition, targetsToUpdate as IEnumerable<ILLabel>);
+
+		/// <inheritdoc cref="EmitIfElseBlock(ILCursor, out ILLabel, out ILLabel, Action{ILCursor}, Func{bool}, Action{ILCursor}, Action{ILCursor}, ILLabel[])"/>
+		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Action<ILCursor> preConditionAction, Func<bool> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, IEnumerable<ILLabel> targetsToUpdate = null) {
+			targetAfterEverything = c.DefineLabel();
+			
+			// if (condition) {
+			c.EmitElseIfBlock(out targetAfterIfBlock, targetAfterEverything, preConditionAction, condition, actionWhenTrueCondition, targetsToUpdate);
+			// } else {
+			int start = c.Index;
+			actionWhenFalseCondition(c);
+			// }
+
+			// Mark the first label
+			targetAfterIfBlock.Target = c.Instrs[start];
+		}
+
+		/// <summary>
+		/// Emits the IL equivalent of an "if - else" chain
+		/// </summary>
+		/// <param name="c">The cursor</param>
+		/// <param name="targetAfterIfBlock">A label representing the a branching label to the instruction after the "if" block</param>
+		/// <param name="targetAfterEverything">A label representing where to jump to after executing the "if" block's instructions</param>
+		/// <param name="condition">The delegate for emitting the "if" condition.  A <see langword="bool"/> value is expected to be on the stack after this delegate's instructions are executed</param>
+		/// <param name="actionWhenTrueCondition">Write instructions that would go inside the "if" block here</param>
+		/// <param name="actionWhenFalseCondition">Write instructions that would go inside the "else" block here</param>
+		/// <param name="targetsToUpdate">A list of branching labels to update to point to the start of this "if" block</param>
+		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Action<ILCursor> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, params ILLabel[] targetsToUpdate)
+			=> c.EmitIfElseBlock(out targetAfterIfBlock, out targetAfterEverything, condition, actionWhenTrueCondition, actionWhenFalseCondition, targetsToUpdate as IEnumerable<ILLabel>);
+
+		/// <inheritdoc cref="EmitIfElseBlock(ILCursor, out ILLabel, out ILLabel, Action{ILCursor}, Action{ILCursor}, Action{ILCursor}, ILLabel[])"/>
+		public static void EmitIfElseBlock(this ILCursor c, out ILLabel targetAfterIfBlock, out ILLabel targetAfterEverything, Action<ILCursor> condition, Action<ILCursor> actionWhenTrueCondition, Action<ILCursor> actionWhenFalseCondition, IEnumerable<ILLabel> targetsToUpdate = null) {
 			targetAfterEverything = c.DefineLabel();
 			
 			// if (condition) {
@@ -107,14 +240,20 @@ namespace SerousCommonLib.API {
 			ILLabel targetAfterEverything = blockEndTargets[^1] = c.DefineLabel();
 
 			// if (condition[0]) {
-			var (condition, action) = blocks[0];
-			c.EmitElseIfBlock(out blockEndTargets[0], targetAfterEverything, blocks[0].condition, blocks[0].action, targetsToUpdate);
+			var (preConditionAction, condition, conditionDirect, action) = blocks[0];
+			if (conditionDirect is not null)
+				c.EmitElseIfBlock(out blockEndTargets[0], targetAfterEverything, conditionDirect, action, targetsToUpdate);
+			else
+				c.EmitElseIfBlock(out blockEndTargets[0], targetAfterEverything, preConditionAction, condition, action, targetsToUpdate);
 			// }
 
 			for (int i = 1; i < blocks.Length; i++) {
 				// else if (condition[i]) {
-				(condition, action) = blocks[i];
-				c.EmitElseIfBlock(out blockEndTargets[i], targetAfterEverything, condition, action, blockEndTargets[i - 1]);
+				(preConditionAction, condition, conditionDirect, action) = blocks[i];
+				if (conditionDirect is not null)
+					c.EmitElseIfBlock(out blockEndTargets[i], targetAfterEverything, conditionDirect, action, blockEndTargets[i - 1]);
+				else
+					c.EmitElseIfBlock(out blockEndTargets[i], targetAfterEverything, preConditionAction, condition, action, blockEndTargets[i - 1]);
 				// }
 			}
 			
