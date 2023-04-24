@@ -1,4 +1,4 @@
-﻿[h1]v1.0.2[/h1]
+﻿[h1]v1.0.3[/h1]
 You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.2]GitHub repository[/url]
 
-- Added the [b]TileScanning[/b] helper class
+- Added overloads for better customization of emitting if blocks in IL
