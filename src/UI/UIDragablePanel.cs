@@ -44,8 +44,13 @@ namespace SerousCommonLib.UI {
 			header.Width.Set(0, 1f);
 			header.Height.Set(30, 0f);
 			header.BackgroundColor.A = 255;
+#if TML_2022_09
 			header.OnMouseDown += Header_MouseDown;
 			header.OnMouseUp += Header_MouseUp;
+#else
+			header.OnLeftMouseDown += Header_MouseDown;
+			header.OnLeftMouseUp += Header_MouseUp;
+#endif
 			Append(header);
 
 			var closeButton = new UITextPanel<char>('X');
@@ -53,7 +58,11 @@ namespace SerousCommonLib.UI {
 			closeButton.Width.Set(40, 0);
 			closeButton.Left.Set(-40, 1);
 			closeButton.BackgroundColor.A = 255;
+#if TML_2022_09
 			closeButton.OnClick += (evt, element) => {
+#else
+			closeButton.OnLeftClick += (evt, element) => {
+#endif
 				SoundEngine.PlaySound(SoundID.MenuTick);
 				OnMenuClose?.Invoke();
 			};
@@ -64,7 +73,11 @@ namespace SerousCommonLib.UI {
 			resetButton.Width.Set(100, 0);
 			resetButton.Left.Set(-45 - 100, 1);
 			resetButton.BackgroundColor.A = 255;
+#if TML_2022_09
 			resetButton.OnClick += (evt, element) => {
+#else
+			resetButton.OnLeftClick += (evt, element) => {
+#endif
 				SoundEngine.PlaySound(SoundID.MenuOpen);
 				OnMenuReset?.Invoke();
 			};
@@ -141,13 +154,21 @@ namespace SerousCommonLib.UI {
 		}
 
 		private void Header_MouseDown(UIMouseEvent evt, UIElement element) {
+#if TML_2022_09
 			base.MouseDown(evt);
+#else
+			base.LeftMouseDown(evt);
+#endif
 
 			DragStart(evt);
 		}
 
 		private void Header_MouseUp(UIMouseEvent evt, UIElement element) {
+#if TML_2022_09
 			base.MouseUp(evt);
+#else
+			base.LeftMouseUp(evt);
+#endif
 
 			DragEnd(evt);
 		}

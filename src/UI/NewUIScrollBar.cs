@@ -150,9 +150,13 @@ namespace SerousCommonLib.UI {
 			inner = result;
 		}
 
+#if TML_2022_09
 		public override void MouseDown(UIMouseEvent evt) {
 			base.MouseDown(evt);
-
+#else
+		public override void LeftMouseDown(UIMouseEvent evt) {
+			base.LeftMouseDown(evt);
+#endif
 			if (evt.Target == this) {
 				Rectangle handleRectangle = GetHandleRectangle();
 				if (handleRectangle.Contains(new Point((int)evt.MousePosition.X, (int)evt.MousePosition.Y))) {
@@ -169,8 +173,13 @@ namespace SerousCommonLib.UI {
 			}
 		}
 
+#if TML_2022_09
 		public override void MouseUp(UIMouseEvent evt) {
 			base.MouseUp(evt);
+#else
+		public override void LeftMouseUp(UIMouseEvent evt) {
+			base.LeftMouseUp(evt);
+#endif
 
 			if (IsDragging)
 				OnDraggingEnd?.Invoke(this);
