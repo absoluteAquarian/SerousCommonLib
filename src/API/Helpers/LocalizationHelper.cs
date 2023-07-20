@@ -49,12 +49,11 @@ namespace SerousCommonLib.API.Helpers
 
 		private static readonly MethodInfo LocalizedText_SetValue =
 			typeof(LocalizedText).GetMethod("SetValue", BindingFlags.NonPublic | BindingFlags.Instance);
-		
+
 		public static void ForceLoadModHJsonLocalization(Mod mod)
 		{
 			var lang = LanguageManager.Instance;
-			foreach (var (key, value) in LocalizationLoader_LoadTranslations.Invoke(null,
-				         new object[] { mod, Language.ActiveCulture }) as List<(string key, string value)>)
+			foreach (var (key, value) in LocalizationLoader_LoadTranslations.Invoke(null, new object[] { mod, Language.ActiveCulture }) as List<(string key, string value)>)
 			{
 				var text = lang.GetText(key);
 				LocalizedText_SetValue.Invoke(text,
