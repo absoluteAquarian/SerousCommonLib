@@ -1,5 +1,1 @@
-﻿Mods: {
-	SerousCommonLib: {
-		Reset: "Reset"
-	}
-}
+Mods.SerousCommonLib.Reset: Reset
