@@ -15,8 +15,8 @@ namespace SerousCommonLib.UI {
 	/// <summary>
 	/// This delegate is used by <see cref="EnhancedItemSlot"/> when its bound item instance has changed
 	/// </summary>
-	/// <param name="newItem">The new state of the bound item</param>
-	public delegate void OnItemSlotItemChangedDelegate(Item newItem);
+	/// <param name="oldItem">The previous state of the bound item</param>
+	public delegate void OnItemSlotItemChangedDelegate(Item oldItem);
 
 	/// <summary>
 	/// An enhanced version of <see cref="ItemSlot"/> containing various functions used when inserting items, removing items, etc.
