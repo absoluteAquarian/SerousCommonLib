@@ -42,8 +42,7 @@ namespace SerousCommonLib.API.Helpers {
 			var lang = LanguageManager.Instance;
 			foreach (var (key, value) in LocalizationLoader_LoadTranslations.Invoke(null, new object[] { mod, Language.ActiveCulture }) as List<(string key, string value)>) {
 				var text = lang.GetText(key);
-				LocalizedText_SetValue.Invoke(text,
-					new object[] { value }); // can only set the value of existing keys. Cannot register new keys.
+				LocalizedText_SetValue.Invoke(text, new object[] { value }); // can only set the value of existing keys. Cannot register new keys.
 			}
 #endif
 		}
