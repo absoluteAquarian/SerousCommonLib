@@ -189,6 +189,19 @@ namespace SerousCommonLib.API {
 		/// <remarks>The generated log file will be at <c>Documents/My Games/Terraria/tModLoader/aA Mods/ModName/</c></remarks>
 		/// <exception cref="Exception"/>
 		public static void CommonPatchingWrapper(ILContext il, Mod patchSource, PatchingContextDelegate doEdits) {
+			CommonPatchingWrapper(il, patchSource, true, doEdits);
+		}
+
+		/// <summary>
+		/// This method logs the instructions within the method tied to <paramref name="il"/>, invokes <paramref name="doEdits"/> and then logss the instructions within the method again
+		/// </summary>
+		/// <param name="il">The context</param>
+		/// <param name="patchSource">Which mod is performing the edits.  This affects the output directory of the file</param>
+		/// <param name="throwOnFail">Whether an exception should be thrown if <paramref name="doEdits"/> fails</param>
+		/// <param name="doEdits">The delegate used to perform the edit</param>
+		/// <remarks>The generated log file will be at <c>Documents/My Games/Terraria/tModLoader/aA Mods/ModName/</c></remarks>
+		/// <exception cref="Exception"/>
+		public static void CommonPatchingWrapper(ILContext il, Mod patchSource, bool throwOnFail, PatchingContextDelegate doEdits) {
 			ArgumentNullException.ThrowIfNull(doEdits);
 
 			ILCursor c = new(il);
@@ -213,9 +226,16 @@ namespace SerousCommonLib.API {
 
 			LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - Before.txt"));
 
-			string badReturnReason = "Unable to fully patch " + il.Method.Name + "()";
-			if (!doEdits(c, ref badReturnReason))
-				throw new Exception(badReturnReason);
+			string error = $"Unable to fully patch {il.Method.Name}()";
+			string badReturnReason = error;
+			if (!doEdits(c, ref badReturnReason)) {
+				if (throwOnFail)
+					throw new Exception(badReturnReason);
+
+				patchSource.Logger.Error(error + "\n  Reason: " + badReturnReason);
+				// Do not report an After file
+				return;
+			}
 
 			LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
 		}
