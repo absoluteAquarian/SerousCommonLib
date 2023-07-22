@@ -13,7 +13,8 @@ using System.Reflection;
 namespace SerousCommonLib.API.Sources {
 	// Near-copy of Terraria.ModLoader.Assets.TModContentSource
 	/// <summary>
-	/// A clone of <see cref="TModContentSource"/> that also checks for an "Assets/" folder.
+	/// A clone of <see cref="TModContentSource"/> that also checks for an "Assets/" folder.<br/>
+	/// Intended usage is in <see cref="Mod.CreateDefaultContentSource"/>
 	/// <para>
 	/// As an example, the file <c>"TheMod/Assets/Folder/Thing.png"</c> can be read by using <c>"TheMod/Assets/Folder/Thing"</c> OR <c>"TheMod/Folder/Thing"</c>
 	/// </para>
