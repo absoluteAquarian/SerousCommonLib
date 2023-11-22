@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
@@ -21,6 +22,7 @@ namespace SerousCommonLib.UI {
 	/// <summary>
 	/// An enhanced version of <see cref="ItemSlot"/> containing various functions used when inserting items, removing items, etc.
 	/// </summary>
+	[Obsolete("Consider using SerousCommonLib.UI.EnhancedItemSlotV2 instead")]
 	public class EnhancedItemSlot : UIElement {
 		/// <summary>
 		/// The <see cref="ItemSlot.Context"/> to draw this item slot with

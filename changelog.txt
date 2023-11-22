@@ -1,7 +1,5 @@
-﻿[h1]v1.0.4.1[/h1]
-You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.4.1]GitHub repository[/url]
+﻿[h1]v1.0.5[/h1]
+You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.5]GitHub repository[/url]
 
-- Added an overload of [b]API.Helpers.ILHelper.CommonPatchingWrapper()[/b] to allow control over whether it should throw an exception on fail
-- Added a new asset source for allowing easy usage of an Assets folder without needing to specify it in content retrievals: [b]API.Sources.PossibleAssetsDirectoryRedirectContentSource[/b]
-- Fixed an oversight regarding the [i]OnItemChanged[/i] event in [b]API.UI.EnhancedItemSlot[/b]
-- Updated codebase to support 1.4.4 tModLoader
+- Added an improved version of the [i]EnhancedItemSlot[/i] UI element, [i]EnhancedItemSlotV2[/i], that has improved backend logic and class members
+- [i]EnhancedItemSlot[/i] is now obsolete
