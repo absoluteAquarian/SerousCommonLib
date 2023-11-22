@@ -5,6 +5,7 @@ https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.5
 
 Many features are included in this mod, including but not limited to:
 - IL/On edit helpers
+- A faster alternative to System.Reflection
 - Type extensions
 - UI element types
 - Easy tooltip modification
