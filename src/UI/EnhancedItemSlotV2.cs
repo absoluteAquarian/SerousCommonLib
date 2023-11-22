@@ -115,7 +115,7 @@ namespace SerousCommonLib.UI {
 		}
 
 		private void Handle() {
-			if (!PlayerInput.IgnoreMouseInterface && IsMouseHovering)
+			if (!PlayerInput.IgnoreMouseInterface && IsMouseHovering && IsItemAllowed?.Invoke(this, Main.mouseItem) is not false)
 				Handle_MouseInteraction();
 		}
 
