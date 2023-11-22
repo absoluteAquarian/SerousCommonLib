@@ -13,9 +13,14 @@ namespace SerousCommonLib.API {
 			void ILoadable.Load(Mod mod) { }
 
 			void ILoadable.Unload() {
+				// Field caches
 				getFieldFuncs.Clear();
 				setFieldFuncs.Clear();
 				cachedFieldInfos.Clear();
+
+				// Cloning caches
+				cloneFuncs.Clear();
+				cachedFieldInfoArrays.Clear();
 
 				Unload?.Invoke();
 				Unload = null;
