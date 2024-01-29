@@ -1,6 +1,4 @@
-﻿[h1]v1.0.5[/h1]
+﻿[h1]v1.0.5.1[/h1]
 You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.5]GitHub repository[/url]
 
-- Added an improved version of the [i]EnhancedItemSlot[/i] UI element, [i]EnhancedItemSlotV2[/i], that has improved backend logic and class members
-- [i]EnhancedItemSlot[/i] is now obsolete
-- Added the [i]FastReflection[/i] type, which uses method generation to provide a faster alternative to System.Reflection
+- Fixed a bug in the [i]NewUIScrollBar[/i] type

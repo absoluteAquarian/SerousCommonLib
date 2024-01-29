@@ -80,13 +80,13 @@ namespace SerousCommonLib.UI {
 
 			CalculatedStyle innerDimensions = GetInnerDimensions();
 			if (IsDragging) {
-				float num = UserInterface.ActiveInstance.MousePosition.Y - innerDimensions.Y - _dragYOffset;
+				float num = Main.MouseScreen.Y - innerDimensions.Y - _dragYOffset;
 				_viewPosition = MathHelper.Clamp(num / innerDimensions.Height * MaxViewSize, 0f, MaxViewSize - ViewSize);
 			}
 
 			if (innerDimensions.Height > 0) {
 				Rectangle handleRectangle = GetHandleRectangle();
-				Vector2 mousePosition = UserInterface.ActiveInstance.MousePosition;
+				Vector2 mousePosition = Main.MouseScreen;
 				bool isHoveringOverHandle = _isHoveringOverHandle;
 				_isHoveringOverHandle = handleRectangle.Contains(new Point((int)mousePosition.X, (int)mousePosition.Y));
 				if (!isHoveringOverHandle && _isHoveringOverHandle && Main.hasFocus && !IsDragging)
@@ -118,7 +118,7 @@ namespace SerousCommonLib.UI {
 
 		// Copy of UIElement.Recalculate() and UIElement.GetDimensionsBasedOnParentDimensions(), but without any clamping for Width and Height
 		private void GetUnrestrictedDimensions(out CalculatedStyle outer, out CalculatedStyle style, out CalculatedStyle inner) {
-			CalculatedStyle parentDimensions = Parent is null ? UserInterface.ActiveInstance.GetDimensions() : Parent.GetInnerDimensions();
+			CalculatedStyle parentDimensions = Parent is null ? new CalculatedStyle(0, 0, Main.screenWidth, Main.screenHeight) : Parent.GetInnerDimensions();
 
 			CalculatedStyle result = default;
 			result.X = Left.GetValue(parentDimensions.Width) + parentDimensions.X;
@@ -167,7 +167,7 @@ namespace SerousCommonLib.UI {
 					_dragYOffset = evt.MousePosition.Y - handleRectangle.Y;
 				} else {
 					CalculatedStyle innerDimensions = GetInnerDimensions();
-					float num = UserInterface.ActiveInstance.MousePosition.Y - innerDimensions.Y - (handleRectangle.Height >> 1);
+					float num = Main.MouseScreen.Y - innerDimensions.Y - (handleRectangle.Height >> 1);
 					_viewPosition = MathHelper.Clamp(num / innerDimensions.Height * MaxViewSize, 0f, MaxViewSize - ViewSize);
 				}
 			}
