@@ -12,15 +12,15 @@ namespace SerousCommonLib.API.Input {
 		/// <summary>
 		/// Returns whether the left mouse button was clicked this frame
 		/// </summary>
-		public static bool MouseClicked => MouseActionsWatchdog.MouseClicked;
+		public static bool MouseClicked => TextTrackerIntegration.MouseClicked;
 
 		/// <summary>
 		/// Returns whether the right mouse button was clicked this frame
 		/// </summary>
-		public static bool RightMouseClicked => MouseActionsWatchdog.RightMouseClicked;
+		public static bool RightMouseClicked => TextTrackerIntegration.RightMouseClicked;
 	}
 
-	internal class MouseActionsWatchdog : ModSystem {
+	internal class TextTrackerIntegration : ModSystem {
 		private static GameTime lastGameTime;
 
 		public static MouseState curMouse;
@@ -46,6 +46,10 @@ namespace SerousCommonLib.API.Input {
 			TextInputTracker.Update(lastGameTime);
 
 			TextInputTracker.RestrictUpdates();
+		}
+
+		public override void Unload() {
+			TextInputTracker.Unload();
 		}
 	}
 }
