@@ -50,12 +50,12 @@ namespace SerousCommonLib.UI {
 		public virtual void OnInputFocusLost() { }
 
 		void ITextInputActor.Update(GameTime gameTime) => HandleState();
-		
+
 		/// <inheritdoc/>
 		public override void Update(GameTime gameTime) {
 			base.Update(gameTime);
 
-			if (TextInputTracker.AreUpdatesRestricted() || !State.IsActive)
+			if (!TextInputTracker.AreUpdatesPermitted() || !State.IsActive)
 				RestrictedUpdate(gameTime);
 		}
 

@@ -31,7 +31,7 @@ namespace SerousCommonLib.API.Input {
 		/// Returns whether full updates for <see cref="TextInputBar"/> instances are restricted
 		/// </summary>
 		/// <returns></returns>
-		public static bool AreUpdatesRestricted() => !fullInputBarUpdating;
+		public static bool AreUpdatesPermitted() => fullInputBarUpdating;
 
 		/// <summary>
 		/// Assigns a state to the provided <see cref="ITextInputActor"/> and registers it for input tracking
