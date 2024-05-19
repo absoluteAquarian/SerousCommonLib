@@ -8,7 +8,6 @@ using Terraria;
 using System.Linq;
 using Terraria.ModLoader.Assets;
 using Terraria.ModLoader;
-using System.Reflection;
 
 namespace SerousCommonLib.API.Sources {
 	// Near-copy of Terraria.ModLoader.Assets.TModContentSource
@@ -22,13 +21,11 @@ namespace SerousCommonLib.API.Sources {
 	public class PossibleAssetsDirectoryRedirectContentSource : ContentSource {
 		private readonly TmodFile file;
 
-		private static readonly MethodInfo Mod_get_File = typeof(Mod).GetProperty("File", BindingFlags.NonPublic | BindingFlags.Instance).GetGetMethod();
-
 		/// <summary>
 		/// Creates an instance of a <see cref="PossibleAssetsDirectoryRedirectContentSource"/> from a mod instance
 		/// </summary>
 		/// <param name="mod">The mod instance</param>
-		public PossibleAssetsDirectoryRedirectContentSource(Mod mod) : this(Mod_get_File.Invoke(mod, null) as TmodFile) { }
+		public PossibleAssetsDirectoryRedirectContentSource(Mod mod) : this(mod.File) { }
 
 		/// <summary>
 		/// Creates an instance of a <see cref="PossibleAssetsDirectoryRedirectContentSource"/> from a mod's file

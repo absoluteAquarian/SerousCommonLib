@@ -5,6 +5,10 @@ using System.Linq;
 
 namespace SerousCommonLib.API.Iterators {
 	// A copy of System.Enumerable/Iterator<T>
+
+	// If the publicizer worked, the following line would be all that is needed.  Alas, it does not.
+	// public abstract class Iterator<TSource> : Iterator_Public<TSource> { }
+
 	/// <summary>
 	/// A base class for enumerables that are loaded on-demand.
 	/// </summary>

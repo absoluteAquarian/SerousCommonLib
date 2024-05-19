@@ -1,4 +1,7 @@
-﻿[h1]v1.0.5.1[/h1]
-You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.5]GitHub repository[/url]
+﻿[h1]v1.0.6[/h1]
+You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6]GitHub repository[/url]
 
-- Fixed a bug in the [i]NewUIScrollBar[/i] type
+- Removed usage of reflection in favor of an assembly publicizer tool
+- Added new methods to [i]LootHelper[/i]
+- Added a rule condition: [i]LambdaRuleCondition[/i]
+- Added a new API for easier handling of text input without relying on the clunky system from the base game

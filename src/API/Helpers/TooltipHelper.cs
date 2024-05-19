@@ -55,8 +55,6 @@ namespace SerousCommonLib.API {
 			}
 		}
 
-		private static readonly FieldInfo ModLoader_attackSpeedScalingTooltipVisibility = typeof(ModLoader).GetField("attackSpeedScalingTooltipVisibility", BindingFlags.NonPublic | BindingFlags.Static);
-
 		/// <summary>
 		/// Returns the index of the last "TooltipX" line in <paramref name="tooltips"/> or the index of the tooltip line that would be immediately before the tooltip if no "TooltipX" line exists
 		/// </summary>
@@ -97,7 +95,7 @@ namespace SerousCommonLib.API {
 						if (item.useStyle != ItemUseStyleID.None && item.DamageType.ShowStatTooltipLine(Main.LocalPlayer, "Speed")) {
 							TryUpdateIndex(ref index, tooltips, "Speed");
 
-							int attackSpeedScalingTooltipVisibility = (int)ModLoader_attackSpeedScalingTooltipVisibility.GetValue(null);
+							int attackSpeedScalingTooltipVisibility = ModLoader.attackSpeedScalingTooltipVisibility;
 
 							if (item.DamageType == DamageClass.MeleeNoSpeed || ItemID.Sets.BonusAttackSpeedMultiplier[item.type] == 0f) {
 								if (attackSpeedScalingTooltipVisibility == 0)

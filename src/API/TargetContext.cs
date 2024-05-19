@@ -25,6 +25,10 @@ namespace SerousCommonLib.API {
 		/// </summary>
 		public readonly IReadOnlyList<ExceptionHandler> incomingHandlers;
 
+		/// <summary>
+		/// Creates a new <see cref="TargetContext"/> from the provided <see cref="ILCursor"/>.  This context records the current cursor's incoming labels and exception handlers for later modification.
+		/// </summary>
+		/// <param name="c"></param>
 		public TargetContext(ILCursor c) {
 			cursor = c;
 			incomingLabels = c.IncomingLabels.ToList().AsReadOnly();

@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-using System.Reflection;
-using System;
-using Terraria.ModLoader;
+﻿using Terraria.ModLoader;
 using Terraria.Localization;
 
 namespace SerousCommonLib.API.Helpers {
@@ -10,15 +6,6 @@ namespace SerousCommonLib.API.Helpers {
 	/// A helper class for using localized text
 	/// </summary>
 	public static class LocalizationHelper {
-#if TML_2022_09
-		internal static readonly MethodInfo LocalizationLoader_AutoloadTranslations = typeof(LocalizationLoader).GetMethod("AutoloadTranslations", BindingFlags.NonPublic | BindingFlags.Static);
-		internal static readonly MethodInfo LocalizationLoader_SetLocalizedText = typeof(LocalizationLoader).GetMethod("SetLocalizedText", BindingFlags.NonPublic | BindingFlags.Static);
-		internal static readonly FieldInfo LanguageManager__localizedTexts = typeof(LanguageManager).GetField("_localizedTexts", BindingFlags.NonPublic | BindingFlags.Instance);
-#else
-		private static readonly MethodInfo LocalizationLoader_LoadTranslations = typeof(LocalizationLoader).GetMethod("LoadTranslations", BindingFlags.NonPublic | BindingFlags.Static);
-		private static readonly MethodInfo LocalizedText_SetValue = typeof(LocalizedText).GetMethod("SetValue", BindingFlags.NonPublic | BindingFlags.Instance);
-#endif
-
 		/// <summary>
 		/// Forces the localization for the given mod, <paramref name="mod"/>, to be loaded for use with <seealso cref="Language"/>
 		/// </summary>
@@ -27,22 +14,20 @@ namespace SerousCommonLib.API.Helpers {
 #if TML_2022_09
 			Dictionary<string, ModTranslation> modTranslationDictionary = new();
 
-			LocalizationLoader_AutoloadTranslations.Invoke(null, new object[] { mod, modTranslationDictionary });
+			LocalizationLoader.AutoloadTranslations(mod, modTranslationDictionary);
 
-			Dictionary<string, LocalizedText> dict = LanguageManager__localizedTexts.GetValue(LanguageManager.Instance) as Dictionary<string, LocalizedText>;
+			Dictionary<string, LocalizedText> dict = LanguageManager.Instance._localizedTexts;
 
 			var culture = Language.ActiveCulture;
 			foreach (ModTranslation translation in modTranslationDictionary.Values) {
-				//LocalizedText text = new LocalizedText(translation.Key, translation.GetTranslation(culture));
-				LocalizedText text = Activator.CreateInstance(typeof(LocalizedText), BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.CreateInstance, null, new object[] { translation.Key, translation.GetTranslation(culture) }, CultureInfo.InvariantCulture) as LocalizedText;
-
-				LocalizationLoader_SetLocalizedText.Invoke(null, new object[] { dict, text });
+				LocalizedText text = new LocalizedText(translation.Key, translation.GetTranslation(culture));
+				LocalizationLoader.SetLocalizedText(dict, text);
 			}
 #else
 			var lang = LanguageManager.Instance;
-			foreach (var (key, value) in LocalizationLoader_LoadTranslations.Invoke(null, new object[] { mod, Language.ActiveCulture }) as List<(string key, string value)>) {
+			foreach (var (key, value) in LocalizationLoader.LoadTranslations(mod, Language.ActiveCulture)) {
 				var text = lang.GetText(key);
-				LocalizedText_SetValue.Invoke(text, new object[] { value }); // can only set the value of existing keys. Cannot register new keys.
+				text.SetValue(value); // can only set the value of existing keys. Cannot register new keys.
 			}
 #endif
 		}
