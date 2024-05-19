@@ -55,12 +55,8 @@ namespace SerousCommonLib.UI {
 		public override void Update(GameTime gameTime) {
 			base.Update(gameTime);
 
-			if (!TextInputTracker.AreUpdatesRestricted() || !State.IsActive) {
+			if (TextInputTracker.AreUpdatesRestricted() || !State.IsActive)
 				RestrictedUpdate(gameTime);
-				return;
-			}
-
-			HandleState();
 		}
 
 		private void HandleState() {
