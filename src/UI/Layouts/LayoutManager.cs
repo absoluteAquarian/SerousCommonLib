@@ -118,7 +118,7 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		[MemberNotNullWhen(true, nameof(Attributes))]
-		private bool AreModificationsAllowed() => Attributes is not null && !IsReadOnly;
+		internal bool AreModificationsAllowed() => Attributes is not null && !IsReadOnly;
 
 		private static CalculatedLayout GetAnchorLayout(UIElement? anchor) => anchor is null ? CalculatedLayout.Screen : GetManager(anchor)._layout;
 

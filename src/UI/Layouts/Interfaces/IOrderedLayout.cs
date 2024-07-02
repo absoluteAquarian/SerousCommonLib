@@ -27,8 +27,21 @@ namespace SerousCommonLib.UI.Layouts {
 		LayoutAttributes AddElement(UIElement element);
 
 		/// <summary>
+		/// Inserts an element into the layout at the specified index, adjusting the constraints of the adjacent elements if necessary
+		/// </summary>
+		/// <param name="element">The element to insert</param>
+		/// <param name="index">The index to insert the element at</param>
+		/// <returns>The layout attributes for the element</returns>
+		LayoutAttributes InsertElement(UIElement element, int index);
+
+		/// <summary>
 		/// Removes an element from the layout and adjusts the constraints of the adjacent elements if necessary
 		/// </summary>
 		void RemoveElement(UIElement element);
+
+		/// <summary>
+		/// Removes all elements from the layout
+		/// </summary>
+		void Clear();
 	}
 }
