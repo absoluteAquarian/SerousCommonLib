@@ -5,3 +5,4 @@ You can find the DLL, PDB and XML files in the mod's [url=https://github.com/abs
 - Added new methods to [i]LootHelper[/i]
 - Added a rule condition: [i]LambdaRuleCondition[/i]
 - Added a new API for easier handling of text input without relying on the clunky system from the base game
+- Added new UI types for employing easier alignment of child elements within a parent element (see: [i]SerousCommonLib.UI.Layouts[/i])

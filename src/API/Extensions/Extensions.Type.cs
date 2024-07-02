@@ -2,10 +2,7 @@
 using System.Linq;
 
 namespace SerousCommonLib.API {
-	/// <summary>
-	/// A helper class containing extension methods for certain types
-	/// </summary>
-	public static partial class Extensions {
+	partial class Extensions {
 		/// <summary>
 		/// Gets a formatted string representing <paramref name="type"/>
 		/// </summary>
