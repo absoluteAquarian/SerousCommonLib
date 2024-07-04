@@ -9,6 +9,7 @@ Many features are included in this mod, including but not limited to:
 - A faster alternative to System.Reflection
 - Type extensions
 - UI element types
+- API for easier alignment of UI elements (SerousCommmonLib.UI.Layouts)
 - Easy tooltip modification
 - Tile scanning information
 - ILoot helpers
