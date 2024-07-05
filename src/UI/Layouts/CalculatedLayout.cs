@@ -2,8 +2,10 @@
 using SerousCommonLib.API;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Terraria.UI;
 
+#nullable enable
 namespace SerousCommonLib.UI.Layouts {
 	internal class CalculatedLayout {
 		private enum ConstraintEdge {
@@ -13,7 +15,7 @@ namespace SerousCommonLib.UI.Layouts {
 			Bottom
 		}
 
-		private CalculatedLayout _parent;
+		private CalculatedLayout? _parent;
 		private readonly HashSet<CalculatedLayout> _children = [];
 
 		private readonly Dictionary<ConstraintEdge, List<LayoutDimensionLink>> _linksByType = new() {
@@ -23,7 +25,7 @@ namespace SerousCommonLib.UI.Layouts {
 			[ConstraintEdge.Bottom] = []
 		};
 
-		public CalculatedLayout Parent => _parent;
+		public CalculatedLayout? Parent => _parent;
 
 		private LayoutDimension _left;
 		public virtual LayoutDimension Left {
@@ -71,13 +73,25 @@ namespace SerousCommonLib.UI.Layouts {
 
 		public RectangleF CalculatedArea => new RectangleF(Left, Top, Width, Height);
 
+		public readonly WeakReference<UIElement>? source;
+
 		public static CalculatedLayout Screen => new ReadOnlyCalculatedLayout(null);
 
-		public CalculatedLayout(float left = 0, float top = 0, float width = 0, float height = 0) {
+		public CalculatedLayout(UIElement? source, float left = 0, float top = 0, float width = 0, float height = 0) {
+			this.source = source.AsWeakReference();
 			Left = new LayoutDimension(left);
 			Top = new LayoutDimension(top);
 			Right = new LayoutDimension(left + width);
 			Bottom = new LayoutDimension(top + height);
+		}
+
+		public bool TryGetElement([NotNullWhen(true)] out UIElement? element) {
+			if (source?.TryGetTarget(out element) is not true) {
+				element = null;
+				return false;
+			}
+
+			return element is not null;
 		}
 
 		public CalculatedLayout AssignWidth(float width, in LayoutGravity gravity, Vector2 parentSize) {
@@ -146,6 +160,22 @@ namespace SerousCommonLib.UI.Layouts {
 				link.Evaluate();
 			foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Bottom])
 				link.Evaluate();
+		}
+
+		public Vector2 GetChildContainerSize() {
+			Vector2 size = new Vector2(Width, Height);
+			if (!TryGetElement(out var self))
+				return size;
+
+			size.X -= self.MarginLeft + self.MarginRight + self.PaddingLeft + self.PaddingRight;
+			size.Y -= self.MarginTop + self.MarginBottom + self.PaddingTop + self.PaddingBottom;
+
+			if (size.X < 0)
+				size.X = 0;
+			if (size.Y < 0)
+				size.Y = 0;
+
+			return size;
 		}
 
 		public virtual void ToTerrariaDimensions(UIElement element, out CalculatedStyle innerDims, out CalculatedStyle dims, out CalculatedStyle outerDims) {

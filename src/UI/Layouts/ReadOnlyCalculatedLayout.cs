@@ -8,8 +8,6 @@ using Terraria.UI;
 #nullable enable
 namespace SerousCommonLib.UI.Layouts {
 	internal class ReadOnlyCalculatedLayout : CalculatedLayout {
-		public readonly WeakReference<UIElement>? source;
-
 		public override LayoutDimension Left {
 			get {
 				if (source?.TryGetTarget(out UIElement? element) is not true)
@@ -58,9 +56,7 @@ namespace SerousCommonLib.UI.Layouts {
 			set { }
 		}
 
-		public ReadOnlyCalculatedLayout(UIElement? source) {
-			this.source = source.AsWeakReference();
-		}
+		public ReadOnlyCalculatedLayout(UIElement? source) : base(source) { }
 
 		public override void ToTerrariaDimensions(UIElement element, out CalculatedStyle innerDims, out CalculatedStyle dims, out CalculatedStyle outerDims) {
 			if (source?.TryGetTarget(out UIElement? sourceElement) is not true) {

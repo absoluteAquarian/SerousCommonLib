@@ -23,7 +23,7 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private readonly WeakReference<UIElement> _elementReference;
-		private CalculatedLayout _layout = new();
+		private CalculatedLayout _layout;
 
 		/// <summary>
 		/// The attributes resposible for aligning the element within its parent.  If <see langword="null"/>, the manager will not affect the element's layout.
@@ -89,7 +89,7 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_Reset(UIElement element) {
-			_layout = new();
+			_layout = new(element);
 
 			if (IsReadOnly)
 				Attributes = null;
@@ -129,7 +129,7 @@ namespace SerousCommonLib.UI.Layouts {
 			}
 
 			// Apply the constraints on the children
-			Vector2 selfSize = new(_layout.Width, _layout.Height);
+			Vector2 selfSize = _layout.GetChildContainerSize();
 
 			foreach (UIElement child in element.Elements) {
 				LayoutManager childManager = GetManager(child);
@@ -199,7 +199,7 @@ namespace SerousCommonLib.UI.Layouts {
 
 		private void ApplyConstraints_HorizontalPass(UIElement element, Vector2 parentSize, SizeConstraint sizeConstraint) {
 			// Apply the constraints on the children that affect the parent's width
-			Vector2 selfSize = new(_layout.Width, _layout.Height);
+			Vector2 selfSize = _layout.GetChildContainerSize();
 
 			foreach (UIElement child in element.Elements) {
 				LayoutManager childManager = GetManager(child);
@@ -223,7 +223,7 @@ namespace SerousCommonLib.UI.Layouts {
 
 		private void ApplyConstraints_VerticalPass(UIElement element, Vector2 parentSize, SizeConstraint sizeConstraint) {
 			// Apply the constraints on the children that affect the parent's height
-			Vector2 selfSize = new(_layout.Width, _layout.Height);
+			Vector2 selfSize = _layout.GetChildContainerSize();
 
 			foreach (UIElement child in element.Elements) {
 				LayoutManager childManager = GetManager(child);
