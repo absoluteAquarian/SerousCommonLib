@@ -95,7 +95,7 @@ namespace SerousCommonLib.UI.Layouts {
 				Attributes = null;
 
 			foreach (UIElement child in element.Elements)
-				GetManager(child).ApplyConstraints_Reset(child);
+				child.GetLayoutManager(LayoutCreationMode.View).ApplyConstraints_Reset(child);
 		}
 
 		private void ApplyConstraints_Init(UIElement element) {
@@ -111,7 +111,7 @@ namespace SerousCommonLib.UI.Layouts {
 
 			// Initialize the children
 			foreach (UIElement child in element.Elements) {
-				LayoutManager childManager = GetManager(child);
+				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				childManager.ApplyConstraints_Init(child);
 				_layout.AssignChild(childManager._layout);
 			}
@@ -120,7 +120,7 @@ namespace SerousCommonLib.UI.Layouts {
 		[MemberNotNullWhen(true, nameof(Attributes))]
 		internal bool AreModificationsAllowed() => Attributes is not null && !IsReadOnly;
 
-		private static CalculatedLayout GetAnchorLayout(UIElement? anchor) => anchor is null ? CalculatedLayout.Screen : GetManager(anchor)._layout;
+		private static CalculatedLayout GetAnchorLayout(UIElement? anchor) => anchor is null ? CalculatedLayout.Screen : anchor.GetLayoutManager(LayoutCreationMode.View)._layout;
 
 		private void ApplyConstraints_CheckConstraints(UIElement element, Vector2 parentSize) {
 			if (AreModificationsAllowed()) {
@@ -132,7 +132,7 @@ namespace SerousCommonLib.UI.Layouts {
 			Vector2 selfSize = _layout.GetChildContainerSize();
 
 			foreach (UIElement child in element.Elements) {
-				LayoutManager childManager = GetManager(child);
+				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				childManager.ApplyConstraints_CheckConstraints(child, selfSize);
 			}
 		}
@@ -202,7 +202,7 @@ namespace SerousCommonLib.UI.Layouts {
 			Vector2 selfSize = _layout.GetChildContainerSize();
 
 			foreach (UIElement child in element.Elements) {
-				LayoutManager childManager = GetManager(child);
+				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				childManager.ApplyConstraints_Horizontal(child, selfSize);
 			}
 
@@ -210,7 +210,7 @@ namespace SerousCommonLib.UI.Layouts {
 			float leftmost = float.PositiveInfinity;
 			float rightmost = float.NegativeInfinity;
 			foreach (UIElement child in element.Elements) {
-				LayoutManager childManager = GetManager(child);
+				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				leftmost = Math.Min(leftmost, childManager._layout.Left);
 				rightmost = Math.Max(rightmost, childManager._layout.Right);
 			}
@@ -226,7 +226,7 @@ namespace SerousCommonLib.UI.Layouts {
 			Vector2 selfSize = _layout.GetChildContainerSize();
 
 			foreach (UIElement child in element.Elements) {
-				LayoutManager childManager = GetManager(child);
+				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				childManager.ApplyConstraints_Vertical(child, selfSize);
 			}
 
@@ -234,7 +234,7 @@ namespace SerousCommonLib.UI.Layouts {
 			float topmost = float.PositiveInfinity;
 			float bottommost = float.NegativeInfinity;
 			foreach (UIElement child in element.Elements) {
-				LayoutManager childManager = GetManager(child);
+				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				topmost = Math.Min(topmost, childManager._layout.Top);
 				bottommost = Math.Max(bottommost, childManager._layout.Bottom);
 			}
@@ -257,7 +257,7 @@ namespace SerousCommonLib.UI.Layouts {
 
 		private static void On_UIElement_Recalculate(On_UIElement.orig_Recalculate orig, UIElement self) {
 			// Layout overrides the default Recalculate method to apply constraints only if the element has a LayoutManager and the manager has attributes to apply
-			if (!LayoutManager.GetManager(self).ApplyConstraints())
+			if (!self.GetLayoutManager(LayoutCreationMode.View).ApplyConstraints())
 				orig(self);
 		}
 	}

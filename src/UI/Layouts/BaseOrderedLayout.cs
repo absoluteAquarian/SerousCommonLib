@@ -42,7 +42,7 @@ namespace SerousCommonLib.UI.Layouts {
 				if (!object.ReferenceEquals(element.Parent, this))
 					RemoveElement_Impl(element, i);
 				else {
-					var manager = LayoutManager.GetManager(element);
+					var manager = element.GetLayoutManager(LayoutCreationMode.View);
 					if (!manager.IsReadOnly) {
 						manager.Attributes ??= new LayoutAttributes();
 
@@ -65,7 +65,7 @@ namespace SerousCommonLib.UI.Layouts {
 			Elements.Add(element);
 			element.Parent = this;
 
-			var manager = LayoutManager.GetOrCreateManager(element);
+			var manager = element.GetLayoutManager();
 			manager.Attributes ??= new LayoutAttributes();
 
 			if (_trackedLayoutElements.Count == 0)
@@ -86,14 +86,14 @@ namespace SerousCommonLib.UI.Layouts {
 			Elements.Insert(index, element);
 			element.Parent = this;
 
-			var manager = LayoutManager.GetOrCreateManager(element);
+			var manager = element.GetLayoutManager();
 			manager.Attributes ??= new LayoutAttributes();
 
 			if (index == 0) {
 				manager.Attributes.AddConstraint(AlignmentToParent, null, LayoutUnit.Zero);
 				if (_trackedLayoutElements.Count > 0) {
 					var nextElement = _trackedLayoutElements[0];
-					var nextManager = LayoutManager.GetManager(nextElement);
+					var nextManager = nextElement.GetLayoutManager(LayoutCreationMode.View);
 					if (nextManager.AreModificationsAllowed()) {
 						nextManager.Attributes.RemoveConstraint(AlignmentToParent);
 						nextManager.Attributes.AddConstraint(AlignmentToSibling, element, Spacing);
@@ -103,7 +103,7 @@ namespace SerousCommonLib.UI.Layouts {
 				manager.Attributes.AddConstraint(AlignmentToSibling, _trackedLayoutElements[index - 1], Spacing);
 				if (index < _trackedLayoutElements.Count) {
 					var nextElement = _trackedLayoutElements[index];
-					var nextManager = LayoutManager.GetManager(nextElement);
+					var nextManager = nextElement.GetLayoutManager(LayoutCreationMode.View);
 					if (nextManager.AreModificationsAllowed())
 						nextManager.Attributes.ChangeConstraintAnchor(AlignmentToSibling, element);
 				}
@@ -127,7 +127,7 @@ namespace SerousCommonLib.UI.Layouts {
 			element.Parent = null;
 
 			// Adjust the constraints of the adjacent elements
-			var manager = LayoutManager.GetManager(element);
+			var manager = element.GetLayoutManager(LayoutCreationMode.View);
 
 			if (manager.AreModificationsAllowed())
 				manager.Attributes.ClearConstraints();
@@ -135,7 +135,7 @@ namespace SerousCommonLib.UI.Layouts {
 			if (index == 0) {
 				// Only the second element is affected
 				if (_trackedLayoutElements.Count > 1) {
-					manager = LayoutManager.GetManager(_trackedLayoutElements[1]);
+					manager = _trackedLayoutElements[1].GetLayoutManager(LayoutCreationMode.View);
 					if (manager.AreModificationsAllowed()) {
 						manager.Attributes.RemoveConstraint(AlignmentToSibling);
 						manager.Attributes.AddConstraint(AlignmentToParent, null, LayoutUnit.Zero);
@@ -144,7 +144,7 @@ namespace SerousCommonLib.UI.Layouts {
 			} else {
 				// The element to the right needs to change its anchor element
 				if (index < _trackedLayoutElements.Count - 1) {
-					manager = LayoutManager.GetManager(_trackedLayoutElements[index + 1]);
+					manager = _trackedLayoutElements[index + 1].GetLayoutManager(LayoutCreationMode.View);
 					if (manager.AreModificationsAllowed())
 						manager.Attributes.ChangeConstraintAnchor(AlignmentToSibling, _trackedLayoutElements[index - 1]);
 				}
@@ -158,7 +158,7 @@ namespace SerousCommonLib.UI.Layouts {
 			foreach (UIElement element in Elements) {
 				element.Parent = null;
 
-				var manager = LayoutManager.GetManager(element);
+				var manager = element.GetLayoutManager(LayoutCreationMode.View);
 				if (manager.AreModificationsAllowed())
 					manager.Attributes.ClearConstraints();
 			}
