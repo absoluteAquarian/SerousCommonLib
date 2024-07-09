@@ -95,5 +95,41 @@ namespace SerousCommonLib.UI.Layouts {
 			_constraintByType.Clear();
 			return this;
 		}
+
+		/// <summary>
+		/// Inherit the size constraints from another UI element
+		/// </summary>
+		/// <param name="element">The element to copy data from</param>
+		public LayoutAttributes InheritSizeFrom(UIElement element) {
+			var width = element.Width;
+			var height = element.Height;
+			var minWidth = element.MinWidth;
+			var maxWidth = element.MaxWidth;
+			var minHeight = element.MinHeight;
+			var maxHeight = element.MaxHeight;
+
+			if (width.Pixels != 0 || width.Percent != 0 || height.Pixels != 0 || height.Percent != 0 || minWidth.Pixels != 0 || minWidth.Percent != 0 || maxWidth.Pixels != 0 || maxWidth.Percent != 0 || minHeight.Pixels != 0 || minHeight.Percent != 0 || maxHeight.Pixels != 0 || maxHeight.Percent != 0)
+				Size = new SizeConstraint(width, height, minWidth, maxWidth, minHeight, maxHeight);
+
+			return this;
+		}
+
+		/// <summary>
+		/// Inherit the <see cref="UIElement.HAlign"/> and <see cref="UIElement.VAlign"/> constraints from another UI element
+		/// </summary>
+		/// <param name="element">The element to copy data from</param>
+		public LayoutAttributes InheritGravityFrom(UIElement element) {
+			if (element.HAlign != 0 || element.VAlign != 0) {
+				LayoutGravityType type = LayoutGravityType.None;
+				if (element.HAlign != 0)
+					type |= LayoutGravityType.CenterHorizontal;
+				if (element.VAlign != 0)
+					type |= LayoutGravityType.CenterVertical;
+
+				Gravity = new LayoutGravity(type, new LayoutUnit(percent: element.HAlign), new LayoutUnit(percent: element.VAlign));
+			}
+
+			return this;
+		}
 	}
 }
