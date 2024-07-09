@@ -90,6 +90,7 @@ namespace SerousCommonLib.UI.Layouts {
 			ApplyConstraints_Init(element);
 			ApplyConstraints_MoveElementWithinParent(element);
 			ApplyConstraints_CheckConstraints(element, parentSize);
+			ApplyConstraints_CheckConstraints(element, parentSize);  // Second pass to ensure that all constraints are applied correctly
 			ApplyConstraints_SetVanillaInfo(element, parentSize);
 		}
 
@@ -191,6 +192,11 @@ namespace SerousCommonLib.UI.Layouts {
 				element.VAlign = gravity.vertical.GetValueRaw(parentSize.Y) / parentSize.Y;
 			else
 				element.VAlign = 0;
+
+			Vector2 selfSize = _layout.GetChildContainerSize();
+
+			foreach (UIElement child in element.Elements)
+				child.GetLayoutManager(LayoutCreationMode.View).ApplyConstraints_SetVanillaInfo(child, selfSize);
 		}
 
 		private void ApplyConstraints_Horizontal(UIElement element, Vector2 parentSize) {
