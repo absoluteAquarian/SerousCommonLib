@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using SerousCommonLib.API;
+using System;
 
 namespace SerousCommonLib.UI.Layouts {
 	/// <summary/>
@@ -23,6 +24,34 @@ namespace SerousCommonLib.UI.Layouts {
 			Vector2 anchor = gravity.GetAnchor(parentSize);
 
 			rectangle.InflateFromAnchor(anchor, horizontalAmount, verticalAmount);
+		}
+
+		internal static LayoutEdge GetSourceEdgeFromConstraint(this LayoutConstraintType type) {
+			return type switch {
+				LayoutConstraintType.LeftToLeftOf => LayoutEdge.Left,
+				LayoutConstraintType.LeftToRightOf => LayoutEdge.Left,
+				LayoutConstraintType.RightToLeftOf => LayoutEdge.Right,
+				LayoutConstraintType.RightToRightOf => LayoutEdge.Right,
+				LayoutConstraintType.TopToTopOf => LayoutEdge.Top,
+				LayoutConstraintType.TopToBottomOf => LayoutEdge.Top,
+				LayoutConstraintType.BottomToTopOf => LayoutEdge.Bottom,
+				LayoutConstraintType.BottomToBottomOf => LayoutEdge.Bottom,
+				_ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid constraint type")
+			};
+		}
+
+		internal static LayoutEdge GetAnchorEdgeFromConstraint(this LayoutConstraintType type) {
+			return type switch {
+				LayoutConstraintType.LeftToLeftOf => LayoutEdge.Left,
+				LayoutConstraintType.LeftToRightOf => LayoutEdge.Right,
+				LayoutConstraintType.RightToLeftOf => LayoutEdge.Left,
+				LayoutConstraintType.RightToRightOf => LayoutEdge.Right,
+				LayoutConstraintType.TopToTopOf => LayoutEdge.Top,
+				LayoutConstraintType.TopToBottomOf => LayoutEdge.Bottom,
+				LayoutConstraintType.BottomToTopOf => LayoutEdge.Top,
+				LayoutConstraintType.BottomToBottomOf => LayoutEdge.Bottom,
+				_ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid constraint type")
+			};
 		}
 	}
 }

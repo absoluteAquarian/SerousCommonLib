@@ -12,7 +12,7 @@ namespace SerousCommonLib.UI.Layouts {
 		/// </summary>
 		public LayoutGravity Gravity { get; set; }
 
-		private readonly Dictionary<LayoutConstraintType, LayoutConstraint> _constraintByType = [];
+		private readonly Dictionary<LayoutEdge, LayoutConstraint> _constraintByType = [];
 		/// <summary>
 		/// The layout constraints for the UI element
 		/// </summary>
@@ -58,11 +58,11 @@ namespace SerousCommonLib.UI.Layouts {
 		/// <summary>
 		/// Adds a layout constraint to the UI element.  If a constraint of the same type already exists, it is overwritten.
 		/// </summary>
-		/// <param name="type">Which alignment types to use</param>
+		/// <param name="type">Which alignment type to use</param>
 		/// <param name="anchor">Which element to use as a reference for alignment.  If <see langword="null"/>, the element's parent is used.</param>
 		/// <param name="dimension">The offset of the alignment</param>
 		public LayoutAttributes AddConstraint(LayoutConstraintType type, UIElement? anchor, LayoutUnit dimension) {
-			_constraintByType[type] = new LayoutConstraint(anchor, dimension, type);
+			_constraintByType[type.GetSourceEdgeFromConstraint()] = new LayoutConstraint(anchor, dimension, type);
 			return this;
 		}
 
@@ -70,18 +70,20 @@ namespace SerousCommonLib.UI.Layouts {
 		/// Removes a layout constraint from the UI element, if it exists
 		/// </summary>
 		public LayoutAttributes RemoveConstraint(LayoutConstraintType type) {
-			_constraintByType.Remove(type);
+			_constraintByType.Remove(type.GetSourceEdgeFromConstraint());
 			return this;
 		}
 
 		/// <summary>
 		/// Changes the anchor of a layout constraint.  If the constraint does not exist, nothing happens.
 		/// </summary>
-		/// <param name="type">Which alignment types to use</param>
+		/// <param name="type">Which alignment type to use</param>
 		/// <param name="anchor">Which element to use as a reference for alignment.  If <see langword="null"/>, the element's parent is used.</param>
 		public LayoutAttributes ChangeConstraintAnchor(LayoutConstraintType type, UIElement? anchor) {
-			if (_constraintByType.TryGetValue(type, out LayoutConstraint constraint))
-				_constraintByType[type] = new LayoutConstraint(anchor, constraint.dimension, type);
+			var edge = type.GetSourceEdgeFromConstraint();
+
+			if (_constraintByType.TryGetValue(edge, out LayoutConstraint constraint))
+				_constraintByType[edge] = new LayoutConstraint(anchor, constraint.dimension, type);
 
 			return this;
 		}

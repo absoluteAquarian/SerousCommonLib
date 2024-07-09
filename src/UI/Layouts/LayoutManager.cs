@@ -24,6 +24,7 @@ namespace SerousCommonLib.UI.Layouts {
 
 		private readonly WeakReference<UIElement> _elementReference;
 		private CalculatedLayout _layout;
+		private CalculatedLayout _screenRoot;
 
 		/// <summary>
 		/// The attributes resposible for aligning the element within its parent.  If <see langword="null"/>, the manager will not affect the element's layout.
@@ -71,7 +72,7 @@ namespace SerousCommonLib.UI.Layouts {
 
 			Vector2 parentSize;
 			if (element.Parent is UIElement parent) {
-				var dims = parent.GetInnerDimensions();
+				var dims = parent._innerDimensions;
 				parentSize = new Vector2(dims.Width, dims.Height);
 			} else {
 				// If the element has no parent, use the screen size
@@ -83,19 +84,29 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_Impl(UIElement element, Vector2 parentSize) {
+			_screenRoot = CalculatedLayout.GetScreenLayout();
+
 			ApplyConstraints_Reset(element);
 			ApplyConstraints_Init(element);
+			ApplyConstraints_MoveElementWithinParent(element);
 			ApplyConstraints_CheckConstraints(element, parentSize);
+			ApplyConstraints_SetVanillaInfo(element, parentSize);
 		}
 
 		private void ApplyConstraints_Reset(UIElement element) {
-			_layout = new(element);
-
-			if (IsReadOnly)
+			if (!IsReadOnly)
+				_layout = new CalculatedLayout(element);
+			else {
 				Attributes = null;
+				_layout = new ReadOnlyCalculatedLayout(element);
+			}
 
-			foreach (UIElement child in element.Elements)
-				child.GetLayoutManager(LayoutCreationMode.View).ApplyConstraints_Reset(child);
+			foreach (UIElement child in element.Elements) {
+				var manager = child.GetLayoutManager(LayoutCreationMode.View);
+				// Child elements will share the root of the topmost element being processed
+				manager._screenRoot = _screenRoot;
+				manager.ApplyConstraints_Reset(child);
+			}
 		}
 
 		private void ApplyConstraints_Init(UIElement element) {
@@ -105,7 +116,8 @@ namespace SerousCommonLib.UI.Layouts {
 					if (!constraint.TryGetAnchor(element, out UIElement? anchor))
 						continue;
 
-					GetAnchorLayout(anchor).LinkDimension(_layout, constraint);
+					// Null anchor implies that the element is anchored to the entire screen rather than a specific element
+					(GetAnchorLayout(anchor) ?? _screenRoot).LinkDimension(_layout, constraint);
 				}
 			}
 
@@ -120,7 +132,19 @@ namespace SerousCommonLib.UI.Layouts {
 		[MemberNotNullWhen(true, nameof(Attributes))]
 		internal bool AreModificationsAllowed() => Attributes is not null && !IsReadOnly;
 
-		private static CalculatedLayout GetAnchorLayout(UIElement? anchor) => anchor is null ? CalculatedLayout.Screen : anchor.GetLayoutManager(LayoutCreationMode.View)._layout;
+		private static CalculatedLayout? GetAnchorLayout(UIElement? anchor) => anchor?.GetLayoutManager(LayoutCreationMode.View)._layout;
+
+		private void ApplyConstraints_MoveElementWithinParent(UIElement element) {
+			if (AreModificationsAllowed()) {
+				// Topmost element has its constraints evaluated first
+				foreach (var constraint in Attributes.Constraints) {
+					if (!constraint.TryGetAnchor(element, out UIElement? anchor))
+						continue;
+
+					new LayoutDimensionLink(_layout, GetAnchorLayout(anchor), constraint).Evaluate();
+				}
+			}
+		}
 
 		private void ApplyConstraints_CheckConstraints(UIElement element, Vector2 parentSize) {
 			if (AreModificationsAllowed()) {
@@ -178,7 +202,6 @@ namespace SerousCommonLib.UI.Layouts {
 						_layout.AssignWidth(size.GetConstrainedWidth(parentSize.X), Attributes.Gravity, parentSize);
 				}
 
-				// Apply the constraints on the children that affect the parent's width
 				_layout.EvaluateHorizontalConstraints();
 			}	
 		}
@@ -192,7 +215,6 @@ namespace SerousCommonLib.UI.Layouts {
 						_layout.AssignHeight(size.GetConstrainedHeight(parentSize.Y), Attributes.Gravity, parentSize);
 				}
 
-				// Apply the constraints on the children that affect the parent's height
 				_layout.EvaluateVerticalConstraints();
 			}
 		}

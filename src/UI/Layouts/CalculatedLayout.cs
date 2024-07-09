@@ -8,21 +8,14 @@ using Terraria.UI;
 #nullable enable
 namespace SerousCommonLib.UI.Layouts {
 	internal class CalculatedLayout {
-		private enum ConstraintEdge {
-			Left,
-			Top,
-			Right,
-			Bottom
-		}
-
 		private CalculatedLayout? _parent;
 		private readonly HashSet<CalculatedLayout> _children = [];
 
-		private readonly Dictionary<ConstraintEdge, List<LayoutDimensionLink>> _linksByType = new() {
-			[ConstraintEdge.Left] = [],
-			[ConstraintEdge.Top] = [],
-			[ConstraintEdge.Right] = [],
-			[ConstraintEdge.Bottom] = []
+		private readonly Dictionary<LayoutEdge, List<LayoutDimensionLink>> _linksByType = new() {
+			[LayoutEdge.Left] = [],
+			[LayoutEdge.Top] = [],
+			[LayoutEdge.Right] = [],
+			[LayoutEdge.Bottom] = []
 		};
 
 		public CalculatedLayout? Parent => _parent;
@@ -32,7 +25,7 @@ namespace SerousCommonLib.UI.Layouts {
 			get => _left;
 			set {
 				_left = value;
-				foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Left])
+				foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Left])
 					link.Evaluate();
 			}
 		}
@@ -42,7 +35,7 @@ namespace SerousCommonLib.UI.Layouts {
 			get => _top;
 			set {
 				_top = value;
-				foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Top])
+				foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Top])
 					link.Evaluate();
 			}
 		}
@@ -52,7 +45,7 @@ namespace SerousCommonLib.UI.Layouts {
 			get => _right;
 			set {
 				_right = value;
-				foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Right])
+				foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Right])
 					link.Evaluate();
 			}
 		}
@@ -62,7 +55,7 @@ namespace SerousCommonLib.UI.Layouts {
 			get => _bottom;
 			set {
 				_bottom = value;
-				foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Bottom])
+				foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Bottom])
 					link.Evaluate();
 			}
 		}
@@ -75,15 +68,11 @@ namespace SerousCommonLib.UI.Layouts {
 
 		public readonly WeakReference<UIElement>? source;
 
-		public static CalculatedLayout Screen => new ReadOnlyCalculatedLayout(null);
-
-		public CalculatedLayout(UIElement? source, float left = 0, float top = 0, float width = 0, float height = 0) {
+		internal CalculatedLayout(UIElement? source) {
 			this.source = source.AsWeakReference();
-			Left = new LayoutDimension(left);
-			Top = new LayoutDimension(top);
-			Right = new LayoutDimension(left + width);
-			Bottom = new LayoutDimension(top + height);
 		}
+
+		public static CalculatedLayout GetScreenLayout() => new ReadOnlyCalculatedLayout(null);
 
 		public bool TryGetElement([NotNullWhen(true)] out UIElement? element) {
 			if (source?.TryGetTarget(out element) is not true) {
@@ -131,15 +120,15 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		public CalculatedLayout LinkDimension(CalculatedLayout dependent, LayoutConstraint dependentConstraint) {
-			ConstraintEdge edge = dependentConstraint.type switch {
-				LayoutConstraintType.LeftToLeftOf => ConstraintEdge.Left,
-				LayoutConstraintType.LeftToRightOf => ConstraintEdge.Right,
-				LayoutConstraintType.RightToLeftOf => ConstraintEdge.Left,
-				LayoutConstraintType.RightToRightOf => ConstraintEdge.Right,
-				LayoutConstraintType.TopToTopOf => ConstraintEdge.Top,
-				LayoutConstraintType.TopToBottomOf => ConstraintEdge.Bottom,
-				LayoutConstraintType.BottomToTopOf => ConstraintEdge.Top,
-				LayoutConstraintType.BottomToBottomOf => ConstraintEdge.Bottom,
+			LayoutEdge edge = dependentConstraint.type switch {
+				LayoutConstraintType.LeftToLeftOf => LayoutEdge.Left,
+				LayoutConstraintType.LeftToRightOf => LayoutEdge.Right,
+				LayoutConstraintType.RightToLeftOf => LayoutEdge.Left,
+				LayoutConstraintType.RightToRightOf => LayoutEdge.Right,
+				LayoutConstraintType.TopToTopOf => LayoutEdge.Top,
+				LayoutConstraintType.TopToBottomOf => LayoutEdge.Bottom,
+				LayoutConstraintType.BottomToTopOf => LayoutEdge.Top,
+				LayoutConstraintType.BottomToBottomOf => LayoutEdge.Bottom,
 				_ => throw new ArgumentOutOfRangeException($"{nameof(dependentConstraint)}.{nameof(dependentConstraint.type)}")
 			};
 
@@ -149,16 +138,16 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		internal void EvaluateHorizontalConstraints() {
-			foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Left])
+			foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Left])
 				link.Evaluate();
-			foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Right])
+			foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Right])
 				link.Evaluate();
 		}
 
 		internal void EvaluateVerticalConstraints() {
-			foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Top])
+			foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Top])
 				link.Evaluate();
-			foreach (LayoutDimensionLink link in _linksByType[ConstraintEdge.Bottom])
+			foreach (LayoutDimensionLink link in _linksByType[LayoutEdge.Bottom])
 				link.Evaluate();
 		}
 
