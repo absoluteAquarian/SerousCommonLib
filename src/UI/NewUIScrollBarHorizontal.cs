@@ -5,5 +5,8 @@
 	public class NewUIScrollBarHorizontal : NewUIScrollbar {
 		/// <inheritdoc/>
 		public sealed override bool VerticalScrolling => false;
+
+		/// <summary/>
+		public NewUIScrollBarHorizontal(float scrollDividend = 1f) : base(scrollDividend) { }
 	}
 }
