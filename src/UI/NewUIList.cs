@@ -1,101 +1,81 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SerousCommonLib.UI.Layouts;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Terraria;
+using System.Linq;
 using Terraria.GameContent.UI.Elements;
-using Terraria.GameInput;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI {
 	/// <summary>
 	/// A copy of <see cref="UIList"/> that uses a <see cref="NewUIScrollbar"/> instead of a <see cref="UIScrollbar"/>
 	/// </summary>
-	public class NewUIList : UIElement, IEnumerable<UIElement>, IEnumerable {
-		#pragma warning disable CS1591
-		public delegate bool ElementSearchMethod(UIElement element);
-
+	public class NewUIList : BaseClippedList {
 		private class UIInnerList : UIElement {
 			public override bool ContainsPoint(Vector2 point) => true;
 
-			protected override void DrawChildren(SpriteBatch spriteBatch) {
-				var parentDims = Parent.GetDimensions();
-
-				Vector2 position = parentDims.Position();
-				Vector2 dimensions = new(parentDims.Width, parentDims.Height);
-
-				foreach (UIElement element in Elements) {
-					var elementDims = element.GetDimensions();
-
-					Vector2 position2 = elementDims.Position();
-					Vector2 dimensions2 = new(elementDims.Width, elementDims.Height);
-
-					if (Collision.CheckAABBvAABBCollision(position, dimensions, position2, dimensions2))
-						element.Draw(spriteBatch);
-				}
-			}
+			protected override void DrawChildren(SpriteBatch spriteBatch) => RenderClippedElement(this, spriteBatch);
 
 			public override Rectangle GetViewCullingArea() => Parent.GetDimensions().ToRectangle();
 		}
 
+		/// <summary>
+		/// The list of elements in the list
+		/// </summary>
 		public List<UIElement> _items = new();
-		protected NewUIScrollbar _scrollbar;
-		internal UIElement _innerList = new UIInnerList();
-		private float _innerListHeight;
 		public float ListPadding = 5f;
+		/// <summary>
+		/// The delegate used to manually sort the elements in the list
+		/// </summary>
 		public Action<List<UIElement>> ManualSortMethod;
 
-		public int Count => _items.Count;
+		/// <inheritdoc cref="GetElementCount"/>
+		public int Count => GetElementCount();
 
-		public float ViewPosition {
-			get => _scrollbar.ViewPosition;
-			set => _scrollbar.ViewPosition = value;
-		}
-
+		/// <summary/>
+		[Obsolete($"Use the {nameof(ReversedOrder)} property instead", error: true)]
 		public bool DisplayChildrenInReverseOrder;
 
-		public NewUIList() {
-			_innerList.OverflowHidden = false;
-			_innerList.Width.Set(0f, 1f);
-			_innerList.Height.Set(0f, 1f);
-			OverflowHidden = true;
-			Append(_innerList);
-		}
+		[Obsolete]
+		private ref bool Obsolete_ReversedOrder() => ref DisplayChildrenInReverseOrder;
 
-		public float GetTotalHeight() => _innerListHeight;
-
-		public void Goto(ElementSearchMethod searchMethod) {
-			int num = 0;
-			while (true) {
-				if (num < _items.Count) {
-					if (searchMethod(_items[num]))
-						break;
-
-					num++;
-					continue;
+		/// <inheritdoc/>
+		public override bool ReversedOrder {
+			get => base.ReversedOrder || Obsolete_ReversedOrder();
+			set {
+				if (base.ReversedOrder != value) {
+					base.ReversedOrder = value;
+					Obsolete_ReversedOrder() = value;
+					Recalculate();
 				}
-
-				return;
 			}
-
-			_scrollbar.ViewPosition = _items[num].Top.Pixels;
 		}
 
-		public virtual void Add(UIElement item) {
+		/// <inheritdoc/>
+		public override float Padding {
+			get => ListPadding;
+			set {
+				if (ListPadding != value) {
+					ListPadding = value;
+					Recalculate();
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		protected override UIElement CreateInnerList() => new UIInnerList();
+
+		/// <inheritdoc/>
+		public override void Add(UIElement item) {
 			_items.Add(item);
 			_innerList.Append(item);
 			UpdateOrder();
 			_innerList.Recalculate();
 		}
 
-		public virtual bool Remove(UIElement item) {
-			_innerList.RemoveChild(item);
-			UpdateOrder();
-			return _items.Remove(item);
-		}
-
-		public virtual void AddRange(IEnumerable<UIElement> items) {
+		/// <inheritdoc/>
+		public override void AddRange(IEnumerable<UIElement> items) {
 			foreach (var item in items) {
 				//TML bug fix:  duplicate enumerations resulting in separate object instances in "_items" and "_innerList.Children"
 				_items.Add(item);
@@ -106,94 +86,66 @@ namespace SerousCommonLib.UI {
 			_innerList.Recalculate();
 		}
 
-		public override void MouseOver(UIMouseEvent evt) {
-			base.MouseOver(evt);
-			PlayerInput.LockVanillaMouseScroll("SerousCommonLib/NewUIList");
-		}
-
-		public virtual void Clear() {
+		/// <inheritdoc/>
+		public override void Clear() {
 			_innerList.RemoveAllChildren();
 			_items.Clear();
 		}
 
-		public override void Recalculate() {
-			base.Recalculate();
-			UpdateScrollbar();
+		/// <inheritdoc/>
+		protected override IEnumerable<UIElement> GetElements() => _items;
+
+		/// <inheritdoc/>
+		protected override int GetElementCount() => _items.Count;
+
+		/// <inheritdoc/>
+		public override void Insert(int index, UIElement element) => throw new NotSupportedException("Inserting elements is not supported in NewUIList");
+
+		/// <inheritdoc/>
+		public override bool Remove(UIElement item) {
+			_innerList.RemoveChild(item);
+			UpdateOrder();
+			return _items.Remove(item);
 		}
 
-		public override void ScrollWheel(UIScrollWheelEvent evt) {
-			base.ScrollWheel(evt);
-			if (_scrollbar != null)
-				_scrollbar.ViewPosition -= evt.ScrollWheelValue / _scrollbar.ScrollDividend;
-		}
-
-		public override void RecalculateChildren() {
-			base.RecalculateChildren();
-			float num = 0f;
-			if (!DisplayChildrenInReverseOrder) {
-				for (int i = 0; i < _items.Count; i++) {
-					float num2 = (_items.Count == 1) ? 0f : ListPadding;
-					_items[i].Top.Set(num, 0f);
-					_items[i].Recalculate();
-					CalculatedStyle outerDimensions = _items[i].GetOuterDimensions();
-					num += outerDimensions.Height + num2;
-				}
-			} else {
-				for (int i = _items.Count - 1; i >= 0; i--) {
-					float num2 = (_items.Count == 1) ? 0f : ListPadding;
-					_items[i].Top.Set(num, 0f);
-					_items[i].Recalculate();
-					CalculatedStyle outerDimensions = _items[i].GetOuterDimensions();
-					num += outerDimensions.Height + num2;
-				}
-			}
-
-			_innerListHeight = num;
-		}
-
-		private void UpdateScrollbar() {
-			if (_scrollbar != null) {
-				float height = GetInnerDimensions().Height;
-				_scrollbar.SetView(height, _innerListHeight);
-			}
-		}
-
-		public void SetScrollbar(NewUIScrollbar scrollbar) {
-			_scrollbar = scrollbar;
-			UpdateScrollbar();
-		}
-
+		/// <summary>
+		/// Sorts the elements in the list
+		/// </summary>
 		public void UpdateOrder() {
 			if (ManualSortMethod != null)
 				ManualSortMethod(_items);
 			else
-				_items.Sort(SortMethod);
+				_items.Sort(static (e, e2) => e.CompareTo(e2));
 
 			UpdateScrollbar();
 		}
 
-		public int SortMethod(UIElement item1, UIElement item2) => item1.CompareTo(item2);
-
-		public override List<SnapPoint> GetSnapPoints() {
-			List<SnapPoint> list = new();
-			if (GetSnapPoint(out SnapPoint point))
-				list.Add(point);
-
-			foreach (UIElement item in _items) {
-				list.AddRange(item.GetSnapPoints());
+		/// <inheritdoc/>
+		public override void Recalculate() {
+			// This element's children should never have alignment constraints
+			foreach (var item in _items) {
+				if (item.GetLayoutManager(LayoutCreationMode.View) is { IsReadOnly: false } manager)
+					manager.Destroy();
 			}
 
-			return list;
+			base.Recalculate();
 		}
 
-		protected override void DrawSelf(SpriteBatch spriteBatch) {
-			if (_scrollbar != null)
-				_innerList.Top.Set(0f - _scrollbar.ViewPosition, 0f);
-
-			Recalculate();
+		/// <inheritdoc/>
+		public override void RecalculateChildren() {
+			if (ReversedOrder) {
+				float num = ListPadding;
+				foreach (UIElement item in _items.Reverse<UIElement>()) {
+					item.Top.Set(num, 0f);
+					num += item.MinHeight.Pixels + ListPadding;
+				}
+			} else {
+				float num2 = ListPadding;
+				foreach (UIElement item in _items) {
+					item.Top.Set(num2, 0f);
+					num2 += item.MinHeight.Pixels + ListPadding;
+				}
+			}
 		}
-
-		public IEnumerator<UIElement> GetEnumerator() => _items.GetEnumerator();
-		IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
 	}
 }

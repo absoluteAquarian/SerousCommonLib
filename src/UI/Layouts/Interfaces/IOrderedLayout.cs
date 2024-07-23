@@ -4,7 +4,7 @@ namespace SerousCommonLib.UI.Layouts {
 	/// <summary>
 	/// An interface representing an object that manages organizing UI elements within a parent element with specific alignment rules
 	/// </summary>
-	public interface IOrderedLayout : IConstraintLayout {
+	public interface IOrderedLayout {
 		/// <summary>
 		/// The alignment of the first element with respect to the parent element
 		/// </summary>
@@ -29,15 +29,16 @@ namespace SerousCommonLib.UI.Layouts {
 		/// <summary>
 		/// Inserts an element into the layout at the specified index, adjusting the constraints of the adjacent elements if necessary
 		/// </summary>
-		/// <param name="element">The element to insert</param>
 		/// <param name="index">The index to insert the element at</param>
+		/// <param name="element">The element to insert</param>
 		/// <returns>The layout attributes for the element</returns>
-		LayoutAttributes InsertElement(UIElement element, int index);
+		LayoutAttributes InsertElement(int index, UIElement element);
 
 		/// <summary>
 		/// Removes an element from the layout and adjusts the constraints of the adjacent elements if necessary
 		/// </summary>
-		void RemoveElement(UIElement element);
+		/// <returns>Whether the element was removed</returns>
+		bool RemoveElement(UIElement element);
 
 		/// <summary>
 		/// Removes all elements from the layout

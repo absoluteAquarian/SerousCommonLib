@@ -25,6 +25,7 @@ namespace SerousCommonLib.UI.Layouts {
 		private readonly WeakReference<UIElement> _elementReference;
 		private CalculatedLayout _layout;
 		private CalculatedLayout _screenRoot;
+		private int _constraintStack;
 
 		/// <summary>
 		/// The attributes resposible for aligning the element within its parent.  If <see langword="null"/>, the manager will not affect the element's layout.
@@ -42,22 +43,34 @@ namespace SerousCommonLib.UI.Layouts {
 			_elementReference = new WeakReference<UIElement>(element);
 		}
 
+		internal void Lock() {
+			if (!_elementReference.TryGetTarget(out _))
+				return;
+
+			_constraintStack++;
+		}
+
+		internal void Unlock() {
+			if (!_elementReference.TryGetTarget(out _))
+				return;
+
+			if (_constraintStack == 0)
+				throw new InvalidOperationException("Constraints are already unlocked");
+
+			_constraintStack--;
+		}
+
 		private static readonly ConditionalWeakTable<UIElement, LayoutManager> _managers = [];
 
 		/// <summary>
 		/// Gets the layout manager for the specified element.  If the element does not have a layout manager, a read-only manager is created instead.
 		/// </summary>
-		public static LayoutManager GetManager(UIElement element) {
-			if (element is IConstraintLayout { Manager: LayoutManager imanager })
-				return imanager;
-
-			return _managers.TryGetValue(element, out LayoutManager? manager) ? manager : CreateWatchingManager(element);
-		}
+		public static LayoutManager GetManager(UIElement element) => _managers.TryGetValue(element, out LayoutManager? manager) ? manager : CreateWatchingManager(element);
 
 		/// <summary>
 		/// Gets the layout manager for the specified element.  If the element does not have a layout manager, a new manager is created.
 		/// </summary>
-		public static LayoutManager GetOrCreateManager(UIElement element) => _managers.GetValue(element, static e => e is IConstraintLayout { Manager: LayoutManager manager } ? manager : new LayoutManager(e));
+		public static LayoutManager GetOrCreateManager(UIElement element) => _managers.GetValue(element, static e => new LayoutManager(e));
 
 		private static LayoutManager CreateWatchingManager(UIElement element) {
 			LayoutManager manager = new LayoutManager(element) {
@@ -66,21 +79,33 @@ namespace SerousCommonLib.UI.Layouts {
 			return manager;
 		}
 
+		/// <summary>
+		/// Destroys this layout manager and forces the eleemnt to use a read-only layout manager until a new manager is created.
+		/// </summary>
+		public void Destroy() {
+			if (_elementReference.TryGetTarget(out UIElement? element))
+				_managers.Remove(element);
+		}
+
 		internal bool ApplyConstraints() {
+			if (_constraintStack > 0)
+				return true;  // Layout was already calculated
+
 			if (!_elementReference.TryGetTarget(out UIElement? element))
 				return false;
 
-			Vector2 parentSize;
+			ApplyConstraints_Impl(element, GetParentSize(element));
+			return true;
+		}
+
+		private static Vector2 GetParentSize(UIElement element) {
 			if (element.Parent is UIElement parent) {
 				var dims = parent._innerDimensions;
-				parentSize = new Vector2(dims.Width, dims.Height);
-			} else {
-				// If the element has no parent, use the screen size
-				parentSize = new Vector2(Main.screenWidth, Main.screenHeight);
+				return new Vector2(dims.Width, dims.Height);
 			}
 
-			ApplyConstraints_Impl(element, parentSize);
-			return true;
+			// If the element has no parent, use the screen size
+			return new Vector2(Main.screenWidth, Main.screenHeight);
 		}
 
 		private void ApplyConstraints_Impl(UIElement element, Vector2 parentSize) {
@@ -91,10 +116,30 @@ namespace SerousCommonLib.UI.Layouts {
 			ApplyConstraints_MoveElementWithinParent(element);
 			ApplyConstraints_CheckConstraints(element, parentSize);
 			ApplyConstraints_CheckConstraints(element, parentSize);  // Second pass to ensure that all constraints are applied correctly
-			ApplyConstraints_SetVanillaInfo(element, parentSize);
+
+			// Prevent repeated calculations
+			if (AreModificationsAllowed())
+				Lock();
+		}
+
+		internal void MirrorToVanilla() {
+			if (!_elementReference.TryGetTarget(out UIElement? element))
+				return;
+
+			// Vanilla info must be delayed to here in case they're set in Recalculate/RecalculateChildren
+			ApplyConstraints_SetVanillaInfo(element, GetParentSize(element));
+
+			foreach (UIElement child in element.Elements)
+				child.GetLayoutManager(LayoutCreationMode.View).MirrorToVanilla();
+
+			if (_constraintStack > 0)
+				Unlock();
 		}
 
 		private void ApplyConstraints_Reset(UIElement element) {
+			if (_constraintStack > 0)
+				return;
+
 			if (!IsReadOnly)
 				_layout = new CalculatedLayout(element);
 			else {
@@ -111,6 +156,9 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_Init(UIElement element) {
+			if (_constraintStack > 0)
+				return;
+
 			if (AreModificationsAllowed()) {
 				// Create any links to anchor dimensions
 				foreach (LayoutConstraint constraint in Attributes.Constraints) {
@@ -136,6 +184,9 @@ namespace SerousCommonLib.UI.Layouts {
 		private static CalculatedLayout? GetAnchorLayout(UIElement? anchor) => anchor?.GetLayoutManager(LayoutCreationMode.View)._layout;
 
 		private void ApplyConstraints_MoveElementWithinParent(UIElement element) {
+			if (_constraintStack > 0)
+				return;
+
 			if (AreModificationsAllowed()) {
 				// Topmost element has its constraints evaluated first
 				foreach (var constraint in Attributes.Constraints) {
@@ -148,6 +199,9 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_CheckConstraints(UIElement element, Vector2 parentSize) {
+			if (_constraintStack > 0)
+				return;
+
 			if (AreModificationsAllowed()) {
 				ApplyConstraints_Horizontal(element, parentSize);
 				ApplyConstraints_Vertical(element, parentSize);
@@ -163,6 +217,9 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_SetVanillaInfo(UIElement element, Vector2 parentSize) {
+			if (_constraintStack > 1)
+				return;
+
 			if (!AreModificationsAllowed())
 				return;
 
@@ -285,7 +342,11 @@ namespace SerousCommonLib.UI.Layouts {
 
 		private static void On_UIElement_Recalculate(On_UIElement.orig_Recalculate orig, UIElement self) {
 			// Layout overrides the default Recalculate method to apply constraints only if the element has a LayoutManager and the manager has attributes to apply
-			if (!self.GetLayoutManager(LayoutCreationMode.View).ApplyConstraints())
+			var manager = self.GetLayoutManager(LayoutCreationMode.View);
+			if (!manager.IsReadOnly && manager.ApplyConstraints()) {
+				self.RecalculateChildren();  // RecalculateChildren has special effects in Magic Storage, so this call is still necessary even though it's useless
+				manager.MirrorToVanilla();
+			} else
 				orig(self);
 		}
 	}

@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI.Layouts {
 	/// <summary>
 	/// The base class for ordered layouts
 	/// </summary>
-	public abstract class BaseOrderedLayout : UIElement, IConstraintLayout, IOrderedLayout {
-		/// <inheritdoc/>
-		public LayoutManager Manager { get; }
-		
+	public abstract class BaseOrderedLayout : UIElement, IEnumerable<UIElement>, IEnumerable, IOrderedLayout {
 		/// <inheritdoc/>
 		public abstract LayoutConstraintType AlignmentToParent { get; }
 
@@ -23,17 +21,15 @@ namespace SerousCommonLib.UI.Layouts {
 		private readonly List<UIElement> _trackedLayoutElements = new();
 
 		/// <summary>
-		/// Creates a new instance of the <see cref="BaseOrderedLayout"/> class
+		/// The number of elements in the layout
 		/// </summary>
-		public BaseOrderedLayout() {
-			Manager = LayoutManager.GetOrCreateManager(this);
-			Manager.Attributes = new LayoutAttributes();
-		}
+		public int Count => _trackedLayoutElements.Count;
 
 		/// <inheritdoc/>
 		public override void Recalculate() {
 			// Ensure the layout manager is in a valid state
-			Manager.Attributes ??= new LayoutAttributes();
+			if (this.GetLayoutManager(LayoutCreationMode.View) is { IsReadOnly: false } manager)
+				manager.Attributes ??= new LayoutAttributes();
 
 			// If any of the tracked elements are no longer children, remove them from the layout
 			// Otherwise, ensure that the constraints are correct
@@ -42,16 +38,16 @@ namespace SerousCommonLib.UI.Layouts {
 				if (!object.ReferenceEquals(element.Parent, this))
 					RemoveElement_Impl(element, i);
 				else {
-					var manager = element.GetLayoutManager(LayoutCreationMode.View);
-					if (!manager.IsReadOnly) {
-						manager.Attributes ??= new LayoutAttributes();
+					var childManager = element.GetLayoutManager(LayoutCreationMode.View);
+					if (!childManager.IsReadOnly) {
+						childManager.Attributes ??= new LayoutAttributes();
 
 						if (i == 0) {
-							manager.Attributes.RemoveConstraint(AlignmentToSibling);
-							manager.Attributes.AddConstraint(AlignmentToParent, null, LayoutUnit.Zero);
+							childManager.Attributes.RemoveConstraint(AlignmentToSibling);
+							childManager.Attributes.AddConstraint(AlignmentToParent, null, LayoutUnit.Zero);
 						} else {
-							manager.Attributes.AddConstraint(AlignmentToSibling, _trackedLayoutElements[i - 1], Spacing);
-							manager.Attributes.RemoveConstraint(AlignmentToParent);
+							childManager.Attributes.AddConstraint(AlignmentToSibling, _trackedLayoutElements[i - 1], Spacing);
+							childManager.Attributes.RemoveConstraint(AlignmentToParent);
 						}
 					}
 				}
@@ -79,7 +75,7 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		/// <inheritdoc/>
-		public LayoutAttributes InsertElement(UIElement element, int index) {
+		public LayoutAttributes InsertElement(int index, UIElement element) {
 			if (index < 0 || index > _trackedLayoutElements.Count)
 				return null;
 
@@ -115,12 +111,12 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		/// <inheritdoc/>
-		public void RemoveElement(UIElement element) => RemoveElement_Impl(element, _trackedLayoutElements.IndexOf(element));
+		public bool RemoveElement(UIElement element) => RemoveElement_Impl(element, _trackedLayoutElements.IndexOf(element));
 
-		private void RemoveElement_Impl(UIElement element, int index) {
+		private bool RemoveElement_Impl(UIElement element, int index) {
 			if (index < 0) {
 				// Ignore, the element was not in the layout
-				return;
+				return false;
 			}
 
 			Elements.Remove(element);
@@ -151,6 +147,7 @@ namespace SerousCommonLib.UI.Layouts {
 			}
 
 			_trackedLayoutElements.RemoveAt(index);
+			return true;
 		}
 
 		/// <inheritdoc/>
@@ -165,5 +162,10 @@ namespace SerousCommonLib.UI.Layouts {
 
 			Elements.Clear();
 		}
+
+		/// <inheritdoc/>
+		public IEnumerator<UIElement> GetEnumerator() => _trackedLayoutElements.GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator() => _trackedLayoutElements.GetEnumerator();
 	}
 }

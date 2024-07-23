@@ -6,11 +6,12 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI {
 	/// <summary>
-	/// A copy of <see cref="UIScrollbar"/>, but modified for convenience
+	/// A modified copy of <see cref="UIScrollbar"/>.  For horizontal scrolling, use <see cref="NewUIScrollBarHorizontal"/>
 	/// </summary>
 	public class NewUIScrollbar : UIElement {
 		#pragma warning disable CS1591
@@ -22,12 +23,13 @@ namespace SerousCommonLib.UI {
 		public bool IsDragging { get; private set; }
 		
 		private bool _isHoveringOverHandle;
-		private float _dragYOffset;
-		private readonly Asset<Texture2D> _texture;
-		private readonly Asset<Texture2D> _innerTexture;
+		private float _dragOffset;
+		private Asset<Texture2D> _texture;
+		private Asset<Texture2D> _innerTexture;
 
 		public event Action<NewUIScrollbar> OnDraggingStart, OnDraggingEnd;
 
+		// TODO: should this even be a member?  figure out why Magic Storage uses it
 		public bool IgnoreParentBoundsWhenDrawing { get; set; }
 
 		public float ScrollDividend { get; set; } = 1f;
@@ -48,14 +50,22 @@ namespace SerousCommonLib.UI {
 		}
 
 		public NewUIScrollbar(float scrollDividend = 1f) {
-			Width.Set(20f, 0f);
-			MaxWidth.Set(20f, 0f);
-			_texture = Main.Assets.Request<Texture2D>("Images/UI/Scrollbar");
-			_innerTexture = Main.Assets.Request<Texture2D>("Images/UI/ScrollbarInner");
-			PaddingTop = 5f;
-			PaddingBottom = 5f;
+			if (VerticalScrolling) {
+				Width.Set(20f, 0f);
+				MaxWidth.Set(20f, 0f);
+				PaddingTop = 5f;
+				PaddingBottom = 5f;
+			} else {
+				Height.Set(20f, 0f);
+				MaxHeight.Set(20f, 0f);
+				PaddingLeft = 5f;
+				PaddingRight = 5f;
+			}
+
 			ScrollDividend = scrollDividend;
 		}
+
+		public virtual bool VerticalScrolling => true;
 
 		public void SetView(float viewSize, float maxViewSize) {
 			viewSize = MathHelper.Clamp(viewSize, 0f, maxViewSize);
@@ -72,19 +82,23 @@ namespace SerousCommonLib.UI {
 				MaxViewSize = 1f;
 			}
 
-			return new Rectangle((int)style.X, (int)(style.Y + style.Height * (_viewPosition / MaxViewSize)) - 3, 20, (int)(style.Height * (ViewSize / MaxViewSize)) + 7);
+			if (VerticalScrolling)
+				return new Rectangle((int)style.X, (int)(style.Y + style.Height * (_viewPosition / MaxViewSize)), 20, (int)(style.Height * (ViewSize / MaxViewSize)) + 7);
+			else
+				return new Rectangle((int)(style.X + style.Width * (_viewPosition / MaxViewSize)), (int)style.Y, (int)(style.Width * (ViewSize / MaxViewSize)) + 7, 20);
 		}
 
 		public override void Update(GameTime gameTime) {
 			base.Update(gameTime);
 
 			CalculatedStyle innerDimensions = GetInnerDimensions();
+			float size = VerticalScrolling ? innerDimensions.Height : innerDimensions.Width;
 			if (IsDragging) {
-				float num = Main.MouseScreen.Y - innerDimensions.Y - _dragYOffset;
-				_viewPosition = MathHelper.Clamp(num / innerDimensions.Height * MaxViewSize, 0f, MaxViewSize - ViewSize);
+				float num = (VerticalScrolling ? Main.MouseScreen.Y - innerDimensions.Y : Main.MouseScreen.X - innerDimensions.X) - _dragOffset;
+				_viewPosition = MathHelper.Clamp(num / size * MaxViewSize, 0f, MaxViewSize - ViewSize);
 			}
 
-			if (innerDimensions.Height > 0) {
+			if (size > 0) {
 				Rectangle handleRectangle = GetHandleRectangle();
 				Vector2 mousePosition = Main.MouseScreen;
 				bool isHoveringOverHandle = _isHoveringOverHandle;
@@ -94,13 +108,50 @@ namespace SerousCommonLib.UI {
 			}
 		}
 
-		internal static void DrawBar(SpriteBatch spriteBatch, Texture2D texture, Rectangle dimensions, Color color) {
-			spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y - 6, dimensions.Width, 6), new Rectangle(0, 0, texture.Width, 6), color);
-			spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y, dimensions.Width, dimensions.Height), new Rectangle(0, 6, texture.Width, 4), color);
-			spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y + dimensions.Height, dimensions.Width, 6), new Rectangle(0, texture.Height - 6, texture.Width, 6), color);
+		public override void Recalculate() {
+			StyleDimension copyMinWidth = MinWidth;
+			StyleDimension copyMaxWidth = MaxWidth;
+			StyleDimension copyMinHeight = MinHeight;
+			StyleDimension copyMaxHeight = MaxHeight;
+
+			if (IgnoreParentBoundsWhenDrawing) {
+				MinWidth = StyleDimension.Fill;
+				MaxWidth = StyleDimension.Fill;
+				MinHeight = StyleDimension.Fill;
+				MaxHeight = StyleDimension.Fill;
+			}
+
+			base.Recalculate();
+
+			if (IgnoreParentBoundsWhenDrawing) {
+				MinWidth = copyMinWidth;
+				MaxWidth = copyMaxWidth;
+				MinHeight = copyMinHeight;
+				MaxHeight = copyMaxHeight;
+			}
+		}
+
+		private void DrawBar(SpriteBatch spriteBatch, Texture2D texture, Rectangle dimensions, Color color) {
+			if (VerticalScrolling) {
+				spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y - 6, dimensions.Width, 6), new Rectangle(0, 0, texture.Width, 6), color);
+				spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y, dimensions.Width, dimensions.Height), new Rectangle(0, 6, texture.Width, 4), color);
+				spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y + dimensions.Height, dimensions.Width, 6), new Rectangle(0, texture.Height - 6, texture.Width, 6), color);
+			} else {
+				spriteBatch.Draw(texture, new Rectangle(dimensions.X - 6, dimensions.Y, 6, dimensions.Height), new Rectangle(0, 0, 6, texture.Height), color);
+				spriteBatch.Draw(texture, new Rectangle(dimensions.X, dimensions.Y, dimensions.Width, dimensions.Height), new Rectangle(6, 0, 4, texture.Height), color);
+				spriteBatch.Draw(texture, new Rectangle(dimensions.X + dimensions.Width, dimensions.Y, 6, dimensions.Height), new Rectangle(texture.Width - 6, 0, 6, texture.Height), color);
+			}
 		}
 
 		protected override void DrawSelf(SpriteBatch spriteBatch) {
+			_texture ??= VerticalScrolling
+				? Main.Assets.Request<Texture2D>("Images/UI/Scrollbar")
+				: ModContent.Request<Texture2D>("SerousCommonLib/Assets/ScrollbarHorizontal");
+
+			_innerTexture ??= VerticalScrolling
+				? Main.Assets.Request<Texture2D>("Images/UI/ScrollbarInner")
+				: ModContent.Request<Texture2D>("SerousCommonLib/Assets/ScrollbarInnerHorizontal");
+
 			CalculatedStyle dimensions;
 			Rectangle handleRectangle;
 
@@ -164,11 +215,13 @@ namespace SerousCommonLib.UI {
 						OnDraggingStart?.Invoke(this);
 
 					IsDragging = true;
-					_dragYOffset = evt.MousePosition.Y - handleRectangle.Y;
+					_dragOffset = VerticalScrolling ? evt.MousePosition.Y - handleRectangle.Y : evt.MousePosition.X - handleRectangle.X;
 				} else {
 					CalculatedStyle innerDimensions = GetInnerDimensions();
-					float num = Main.MouseScreen.Y - innerDimensions.Y - (handleRectangle.Height >> 1);
-					_viewPosition = MathHelper.Clamp(num / innerDimensions.Height * MaxViewSize, 0f, MaxViewSize - ViewSize);
+					float num = VerticalScrolling 
+						? Main.MouseScreen.Y - innerDimensions.Y - handleRectangle.Height / 2
+						: Main.MouseScreen.X - innerDimensions.X - handleRectangle.Width / 2;
+					_viewPosition = MathHelper.Clamp(num / (VerticalScrolling ? innerDimensions.Height : innerDimensions.Width) * MaxViewSize, 0f, MaxViewSize - ViewSize);
 				}
 			}
 		}
