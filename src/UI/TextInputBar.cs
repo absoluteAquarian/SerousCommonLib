@@ -44,6 +44,9 @@ namespace SerousCommonLib.UI {
 		public virtual void OnInputCleared() { }
 
 		/// <inheritdoc/>
+		public virtual void OnInputEnter() { }
+
+		/// <inheritdoc/>
 		public virtual void OnInputFocusGained() { }
 
 		/// <inheritdoc/>

@@ -45,11 +45,11 @@ namespace SerousCommonLib.API.Input {
 		}
 
 		/// <summary>
-		/// Updates <see cref="Main.blockInput"/> and <see cref="Main.CurrentInputTextTakerOverride"/> depending on whether any <see cref="TextInputState"/> has focus.<br/>
+		/// Updates <see cref="Main.blockInput"/> and <see cref="Main.CurrentInputTextTakerOverride"/> depending on whether any <see cref="TextInputState"/> is active and has focus.<br/>
 		/// This method also forcibly closes the ingame chat when called.
 		/// </summary>
 		public static void CheckInputBlocking() {
-			if (_inputs.Find(static s => s.HasFocus) is { } input) {
+			if (_inputs.Find(static s => s.IsActive && s.HasFocus) is { } input) {
 				Main.CurrentInputTextTakerOverride = input;
 				Main.blockInput = true;
 			} else

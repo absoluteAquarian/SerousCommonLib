@@ -65,6 +65,17 @@ namespace SerousCommonLib.API.Input {
 		public bool HideContents { get; set; }
 
 		/// <summary>
+		/// Whether the text input actor should constantly have focus, useful for password prompts
+		/// </summary>
+		public bool ForcedFocus { get; set; }
+
+		/// <summary>
+		/// Whether the text input actor should lose focus when <see cref="ITextInputActor.OnInputEnter"/> is called.<br/>
+		/// Defaults to <see langword="true"/>.
+		/// </summary>
+		public bool LoseFocusOnEnter { get; set; } = true;
+
+		/// <summary>
 		/// The <see cref="ITextInputActor"/> that this state is associated with
 		/// </summary>
 		public ITextInputActor Actor => _actor;
@@ -91,10 +102,12 @@ namespace SerousCommonLib.API.Input {
 			if (++_timer >= 60)
 				_timer = 0;
 
-			if (!hoveringMouse && (LegacyMouseInput.MouseClicked || LegacyMouseInput.RightMouseClicked))
+			if (ForcedFocus)
+				Focus();
+			else if (!hoveringMouse && (LegacyMouseInput.MouseClicked || LegacyMouseInput.RightMouseClicked))
 				Unfocus();
 
-			if (_focused) {
+			if (_active && _focused) {
 				// Read from IME and update the text
 				Main.blockInput = true;
 				Main.drawingPlayerChat = false;
@@ -107,9 +120,11 @@ namespace SerousCommonLib.API.Input {
 				if (_text.Length != length)
 					_actor.OnInputChanged();
 
-				if (Main.inputTextEnter)
-					Unfocus();
-				else if (Main.inputTextEscape)
+				if (Main.inputTextEnter) {
+					_actor.OnInputEnter();
+					if (LoseFocusOnEnter)
+						Unfocus();
+				} else if (Main.inputTextEscape)
 					Reset(clearText: false);
 			}
 
@@ -185,7 +200,7 @@ namespace SerousCommonLib.API.Input {
 		/// Attempts to lose focus for the text input actor
 		/// </summary>
 		public void Unfocus() {
-			if (_focused) {
+			if (!ForcedFocus && _focused) {
 				_focused = false;
 				_actor.OnInputFocusLost();
 				TextInputTracker.CheckInputBlocking();

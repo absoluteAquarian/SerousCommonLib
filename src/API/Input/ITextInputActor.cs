@@ -42,6 +42,11 @@ namespace SerousCommonLib.API.Input {
 		void OnInputCleared();
 
 		/// <summary>
+		/// This method executes when the text input actor's text is submitted (e.g. by pressing Enter)
+		/// </summary>
+		void OnInputEnter();
+
+		/// <summary>
 		/// This method executes when the text input actor gains focus and starts blocking gameplay input
 		/// </summary>
 		void OnInputFocusGained();
