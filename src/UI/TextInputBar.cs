@@ -13,6 +13,35 @@ namespace SerousCommonLib.UI {
 	/// A UI element that can receive and display text input
 	/// </summary>
 	public abstract class TextInputBar : UIElement, ITextInputActor {
+		// Events so that making a derived class isn't necessary
+
+		/// <inheritdoc cref="OnActivityGained"/>
+		public event Action<TextInputBar> OnActivityGainedEvent;
+
+		/// <inheritdoc cref="OnActivityLost"/>
+		public event Action<TextInputBar> OnActivityLostEvent;
+
+		/// <inheritdoc cref="OnInputChanged"/>
+		public event Action<TextInputBar> OnInputChangedEvent;
+
+		/// <inheritdoc cref="OnInputCleared"/>
+		public event Action<TextInputBar> OnInputClearedEvent;
+
+		/// <inheritdoc cref="OnInputEnter"/>
+		public event Action<TextInputBar> OnInputEnterEvent;
+
+		/// <inheritdoc cref="OnInputFocusGained"/>
+		public event Action<TextInputBar> OnInputFocusGainedEvent;
+
+		/// <inheritdoc cref="OnInputFocusLost"/>
+		public event Action<TextInputBar> OnInputFocusLostEvent;
+
+		/// <inheritdoc cref="RestrictedUpdate"/>
+		public event Action<TextInputBar> OnRestrictedUpdate;
+
+		/// <inheritdoc cref="PreStateTick"/>
+		public event Action<TextInputBar> OnStateTick;
+
 		/// <inheritdoc/>
 		public TextInputState State { get; }
 
@@ -32,25 +61,25 @@ namespace SerousCommonLib.UI {
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnActivityGained() { }
+		public virtual void OnActivityGained() => OnActivityGainedEvent?.Invoke(this);
 
 		/// <inheritdoc/>
-		public virtual void OnActivityLost() { }
+		public virtual void OnActivityLost() => OnActivityLostEvent?.Invoke(this);
 
 		/// <inheritdoc/>
-		public virtual void OnInputChanged() { }
+		public virtual void OnInputChanged() => OnInputChangedEvent?.Invoke(this);
 
 		/// <inheritdoc/>
-		public virtual void OnInputCleared() { }
+		public virtual void OnInputCleared() => OnInputClearedEvent?.Invoke(this);
 
 		/// <inheritdoc/>
-		public virtual void OnInputEnter() { }
+		public virtual void OnInputEnter() => OnInputEnterEvent?.Invoke(this);
 
 		/// <inheritdoc/>
-		public virtual void OnInputFocusGained() { }
+		public virtual void OnInputFocusGained() => OnInputFocusGainedEvent?.Invoke(this);
 
 		/// <inheritdoc/>
-		public virtual void OnInputFocusLost() { }
+		public virtual void OnInputFocusLost() => OnInputFocusLostEvent?.Invoke(this);
 
 		void ITextInputActor.Update(GameTime gameTime) => HandleState();
 
@@ -71,12 +100,12 @@ namespace SerousCommonLib.UI {
 		/// <summary>
 		/// Executes whenever the text input actor is not active or the underlying state has yet to be updated with the latest text input, e.g. during <see cref="UIElement.Update"/>
 		/// </summary>
-		protected virtual void RestrictedUpdate(GameTime gameTime) { }
+		protected virtual void RestrictedUpdate(GameTime gameTime) => OnRestrictedUpdate?.Invoke(this);
 
 		/// <summary>
 		/// Executes just before the state for this text input actor is updated
 		/// </summary>
-		protected virtual void PreStateTick() { }
+		protected virtual void PreStateTick() => OnStateTick?.Invoke(this);
 
 		/// <inheritdoc/>
 		public override void LeftClick(UIMouseEvent evt) {

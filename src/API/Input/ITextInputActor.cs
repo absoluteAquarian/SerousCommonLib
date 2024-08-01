@@ -17,42 +17,42 @@ namespace SerousCommonLib.API.Input {
 		LocalizedText HintText { get; }
 
 		/// <summary>
-		/// This method executes whenever the text input actor is active
+		/// Executes whenever the text input actor is active
 		/// </summary>
 		void Update(GameTime gameTime);
 
 		/// <summary>
-		/// This method executes whenever the text input actor is activated
+		/// Executes whenever the text input actor is activated
 		/// </summary>
 		void OnActivityGained();
 
 		/// <summary>
-		/// This method executes whenever the text input actor is deactivated
+		/// Executes whenever the text input actor is deactivated
 		/// </summary>
 		void OnActivityLost();
 
 		/// <summary>
-		/// This method executes when the text input actor's text has changed
+		/// Executes when the text input actor's text has changed
 		/// </summary>
 		void OnInputChanged();
 
 		/// <summary>
-		/// This method executes whenever the text input actor's text is cleared
+		/// Executes whenever the text input actor's text is cleared
 		/// </summary>
 		void OnInputCleared();
 
 		/// <summary>
-		/// This method executes when the text input actor's text is submitted (e.g. by pressing Enter)
+		/// Executes when the text input actor's text is submitted (e.g. by pressing Enter)
 		/// </summary>
 		void OnInputEnter();
 
 		/// <summary>
-		/// This method executes when the text input actor gains focus and starts blocking gameplay input
+		/// Executes when the text input actor gains focus and starts blocking gameplay input
 		/// </summary>
 		void OnInputFocusGained();
 
 		/// <summary>
-		/// This method executes when the text input actor loses focus and stops blocking gameplay input
+		/// Executes when the text input actor loses focus and stops blocking gameplay input
 		/// </summary>
 		void OnInputFocusLost();
 	}
