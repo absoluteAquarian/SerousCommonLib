@@ -66,7 +66,8 @@ namespace SerousCommonLib.API.Input {
 		/// Handles text input for adding text to the end of a <see cref="StringBuilder"/> instance, optionally checking for chat tags.
 		/// </summary>
 		/// <param name="text">The text builder</param>
-		public static void Handle(StringBuilder text) {
+		/// <param name="controller">An optional object used to control the input passed to <paramref name="text"/></param>
+		public static void Handle(StringBuilder text, ITextInputController controller = null) {
 			int cursor = text.Length;
 			Handle(text, ref cursor);
 		}
@@ -89,7 +90,8 @@ namespace SerousCommonLib.API.Input {
 		/// </summary>
 		/// <param name="text">The text builder</param>
 		/// <param name="cursor">A reference to the cursor location to insert characters at</param>
-		public static void Handle(StringBuilder text, ref int cursor) {
+		/// <param name="controller">An optional object used to control the input passed to <paramref name="text"/></param>
+		public static void Handle(StringBuilder text, ref int cursor, ITextInputController controller = null) {
 			// These two lines are important for enabling the key listener event above
 			PlayerInput.WritingText = true;
 			Main.instance.HandleIME();
@@ -209,6 +211,9 @@ namespace SerousCommonLib.API.Input {
 
 			// Process the character queue
 			while (_inputQueue.TryDequeue(out char c)) {
+				if (controller?.PermitCharacter(c) is false)
+					continue;
+
 				if (c == VK_ENTER)
 					Main.inputTextEnter = true;
 				else if (c == VK_ESCAPE || c == VK_TAB)

@@ -115,7 +115,7 @@ namespace SerousCommonLib.API.Input {
 
 				int length = _text.Length;
 				
-				RawTextIME.Handle(_text, ref _cursor);
+				RawTextIME.Handle(_text, ref _cursor, _actor.Controller);
 
 				if (_text.Length != length)
 					_actor.OnInputChanged();

@@ -17,6 +17,11 @@ namespace SerousCommonLib.API.Input {
 		LocalizedText HintText { get; }
 
 		/// <summary>
+		/// The object to use to control which characters are permitted as input
+		/// </summary>
+		ITextInputController Controller { get; }
+
+		/// <summary>
 		/// Executes whenever the text input actor is active
 		/// </summary>
 		void Update(GameTime gameTime);

@@ -48,6 +48,9 @@ namespace SerousCommonLib.UI {
 		/// <inheritdoc/>
 		public LocalizedText HintText { get; set; }
 
+		/// <inheritdoc/>
+		public ITextInputController Controller { get; set; }
+
 		/// <summary>
 		/// Creates a new instance of <see cref="TextInputBar"/> with the provided hint text
 		/// </summary>
