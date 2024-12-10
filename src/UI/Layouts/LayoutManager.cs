@@ -140,9 +140,10 @@ namespace SerousCommonLib.UI.Layouts {
 			if (_constraintStack > 0)
 				return;
 
-			if (!IsReadOnly)
-				_layout = new CalculatedLayout(element);
-			else {
+			if (!IsReadOnly) {
+				_layout = new CalculatedLayout(element, Attributes);
+				Attributes?.CheckInheritance();
+			} else {
 				Attributes = null;
 				_layout = new ReadOnlyCalculatedLayout(element);
 			}

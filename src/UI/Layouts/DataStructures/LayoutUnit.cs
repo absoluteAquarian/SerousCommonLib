@@ -37,8 +37,8 @@ namespace SerousCommonLib.UI.Layouts {
 		/// <param name="pixels">The raw pixel offset</param>
 		/// <param name="percent">The percentage of the parent element's size to inherit</param>
 		public LayoutUnit(float pixels = 0, float percent = 0) {
-			if (percent < 0 || percent > 1)
-				throw new ArgumentOutOfRangeException(nameof(percent), percent, "Percentage must be between 0 and 1");
+			ArgumentOutOfRangeException.ThrowIfLessThan(percent, 0, nameof(percent));
+			ArgumentOutOfRangeException.ThrowIfGreaterThan(percent, 1, nameof(percent));
 
 			this.pixels = pixels;
 			this.percent = percent;

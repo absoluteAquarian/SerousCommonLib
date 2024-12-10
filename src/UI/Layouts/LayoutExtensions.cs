@@ -53,5 +53,15 @@ namespace SerousCommonLib.UI.Layouts {
 				_ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid constraint type")
 			};
 		}
+
+		internal static LayoutEdge GetOppositeEdge(this LayoutEdge edge) {
+			return edge switch {
+				LayoutEdge.Left => LayoutEdge.Right,
+				LayoutEdge.Right => LayoutEdge.Left,
+				LayoutEdge.Top => LayoutEdge.Bottom,
+				LayoutEdge.Bottom => LayoutEdge.Top,
+				_ => throw new ArgumentOutOfRangeException(nameof(edge), edge, "Invalid layout edge")
+			};
+		}
 	}
 }

@@ -4,68 +4,104 @@ using Terraria.UI;
 
 namespace SerousCommonLib.UI.Layouts {
 	internal class LayoutDimensionLink {
-		private readonly CalculatedLayout _depdendent;
-		private readonly CalculatedLayout _anchor;
+		public readonly CalculatedLayout depdendent;
+		public readonly CalculatedLayout anchor;
 
-		private readonly LayoutUnit _offset;
-		private readonly LayoutConstraintType _type;
+		public readonly LayoutUnit offset;
+		public readonly LayoutConstraintType type;
+
+		public LayoutDimensionLink oppositeSide;
 
 		public LayoutDimensionLink(CalculatedLayout dependent, CalculatedLayout anchor, LayoutConstraint depdendentConstraint) {
 			if (object.ReferenceEquals(dependent, anchor))
 				throw new ArgumentException("Layout constraint cannot target the same layout as the one it is assigned to");
 
-			_depdendent = dependent;
-			_anchor = anchor;
-			_offset = depdendentConstraint.dimension;
-			_type = depdendentConstraint.type;
+			depdendent = dependent;
+			this.anchor = anchor;
+			offset = depdendentConstraint.dimension;
+			type = depdendentConstraint.type;
 		}
 
 		public void Evaluate() {
-			Vector2 parentSize = (_depdendent.Parent ?? CalculatedLayout.GetScreenLayout()).GetChildContainerSize();
-			bool anchorHasElement = _anchor.TryGetElement(out UIElement anchorElement);
+			Vector2 parentSize = (depdendent.Parent ?? CalculatedLayout.GetScreenLayout()).GetChildContainerSize();
+			bool anchorHasElement = anchor.TryGetElement(out UIElement anchorElement);
 
-			switch (_type) {
+			switch (type) {
 				case LayoutConstraintType.LeftToLeftOf:
-					_depdendent.Left = _anchor.Left + _offset.GetValueRaw(parentSize.X);
+					depdendent.Left = anchor.Left + GetHorizontalOffset(parentSize.X);
 					if (anchorHasElement)
-						_depdendent.Left += anchorElement.PaddingLeft;
+						depdendent.Left += anchorElement.PaddingLeft;
 					break;
 				case LayoutConstraintType.LeftToRightOf:
-					_depdendent.Left = _anchor.Right + _offset.GetValueRaw(parentSize.X);
+					depdendent.Left = anchor.Right + GetHorizontalOffset(parentSize.X);
 					if (anchorHasElement)
-						_depdendent.Left += anchorElement.MarginRight;
+						depdendent.Left += anchorElement.MarginRight;
 					break;
 				case LayoutConstraintType.RightToLeftOf:
-					_depdendent.Right = _anchor.Left - _offset.GetValueRaw(parentSize.X);
+					depdendent.Right = anchor.Left - GetHorizontalOffset(parentSize.X);
 					if (anchorHasElement)
-						_depdendent.Right -= anchorElement.MarginLeft;
+						depdendent.Right -= anchorElement.MarginLeft;
 					break;
 				case LayoutConstraintType.RightToRightOf:
-					_depdendent.Right = _anchor.Right - _offset.GetValueRaw(parentSize.X);
+					depdendent.Right = anchor.Right - GetHorizontalOffset(parentSize.X);
 					if (anchorHasElement)
-						_depdendent.Right -= anchorElement.PaddingRight;
+						depdendent.Right -= anchorElement.PaddingRight;
 					break;
 				case LayoutConstraintType.TopToTopOf:
-					_depdendent.Top = _anchor.Top + _offset.GetValueRaw(parentSize.Y);
+					depdendent.Top = anchor.Top + GetVerticalOffset(parentSize.Y);
 					if (anchorHasElement)
-						_depdendent.Top += anchorElement.PaddingTop;
+						depdendent.Top += anchorElement.PaddingTop;
 					break;
 				case LayoutConstraintType.TopToBottomOf:
-					_depdendent.Top = _anchor.Bottom + _offset.GetValueRaw(parentSize.Y);
+					depdendent.Top = anchor.Bottom + GetVerticalOffset(parentSize.Y);
 					if (anchorHasElement)
-						_depdendent.Top += anchorElement.MarginBottom;
+						depdendent.Top += anchorElement.MarginBottom;
 					break;
 				case LayoutConstraintType.BottomToTopOf:
-					_depdendent.Bottom = _anchor.Top - _offset.GetValueRaw(parentSize.Y);
+					depdendent.Bottom = anchor.Top - GetVerticalOffset(parentSize.Y);
 					if (anchorHasElement)
-						_depdendent.Bottom -= anchorElement.MarginTop;
+						depdendent.Bottom -= anchorElement.MarginTop;
 					break;
 				case LayoutConstraintType.BottomToBottomOf:
-					_depdendent.Bottom = _anchor.Bottom - _offset.GetValueRaw(parentSize.Y);
+					depdendent.Bottom = anchor.Bottom - GetVerticalOffset(parentSize.Y);
 					if (anchorHasElement)
-						_depdendent.Bottom -= anchorElement.PaddingBottom;
+						depdendent.Bottom -= anchorElement.PaddingBottom;
 					break;
 			}
+		}
+
+		private float GetHorizontalOffset(float parentWidth) {
+			float self = offset.GetValueRaw(parentWidth);
+
+			if (oppositeSide is null)
+				return self;
+
+			float opposite = oppositeSide.offset.GetValueRaw(parentWidth);
+
+			// Get the horizontal bias of the element
+			float bias = depdendent.attributes?.Bias.horizontalBias ?? 0.5f;  // Default to center
+
+			if (type is LayoutConstraintType.RightToLeftOf or LayoutConstraintType.RightToRightOf)
+				bias = 1 - bias;
+
+			return (self + opposite) * bias;
+		}
+
+		private float GetVerticalOffset(float parentHeight) {
+			float self = offset.GetValueRaw(parentHeight);
+
+			if (oppositeSide is null)
+				return self;
+
+			float opposite = oppositeSide.offset.GetValueRaw(parentHeight);
+
+			// Get the vertical bias of the element
+			float bias = depdendent.attributes?.Bias.verticalBias ?? 0.5f;  // Default to center
+
+			if (type is LayoutConstraintType.BottomToTopOf or LayoutConstraintType.BottomToBottomOf)
+				bias = 1 - bias;
+
+			return (self + opposite) * bias;
 		}
 	}
 }

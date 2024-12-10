@@ -67,9 +67,11 @@ namespace SerousCommonLib.UI.Layouts {
 		public RectangleF CalculatedArea => new RectangleF(Left, Top, Width, Height);
 
 		public readonly WeakReference<UIElement>? source;
+		public readonly LayoutAttributes? attributes;
 
-		internal CalculatedLayout(UIElement? source) {
+		internal CalculatedLayout(UIElement? source, LayoutAttributes? attributes) {
 			this.source = source.AsWeakReference();
+			this.attributes = attributes;
 		}
 
 		public static CalculatedLayout GetScreenLayout() => new ReadOnlyCalculatedLayout(null);
@@ -120,19 +122,19 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		public CalculatedLayout LinkDimension(CalculatedLayout dependent, LayoutConstraint dependentConstraint) {
-			LayoutEdge edge = dependentConstraint.type switch {
-				LayoutConstraintType.LeftToLeftOf => LayoutEdge.Left,
-				LayoutConstraintType.LeftToRightOf => LayoutEdge.Right,
-				LayoutConstraintType.RightToLeftOf => LayoutEdge.Left,
-				LayoutConstraintType.RightToRightOf => LayoutEdge.Right,
-				LayoutConstraintType.TopToTopOf => LayoutEdge.Top,
-				LayoutConstraintType.TopToBottomOf => LayoutEdge.Bottom,
-				LayoutConstraintType.BottomToTopOf => LayoutEdge.Top,
-				LayoutConstraintType.BottomToBottomOf => LayoutEdge.Bottom,
-				_ => throw new ArgumentOutOfRangeException($"{nameof(dependentConstraint)}.{nameof(dependentConstraint.type)}")
-			};
+			LayoutEdge edge = dependentConstraint.type.GetAnchorEdgeFromConstraint();
+			LayoutDimensionLink link = new(dependent, this, dependentConstraint);
 
-			_linksByType[edge].Add(new LayoutDimensionLink(dependent, this, dependentConstraint));
+			_linksByType[edge].Add(link);
+
+			foreach (LayoutDimensionLink oppositeLink in _linksByType[edge.GetOppositeEdge()]) {
+				if (object.ReferenceEquals(oppositeLink.depdendent, dependent)) {
+					// An opposite edge has been found, link the two together
+					link.oppositeSide = oppositeLink;
+					oppositeLink.oppositeSide = link;
+					break;
+				}
+			}
 
 			return this;
 		}

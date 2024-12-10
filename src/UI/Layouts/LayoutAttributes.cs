@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Terraria.UI;
 
 #nullable enable
@@ -22,6 +23,11 @@ namespace SerousCommonLib.UI.Layouts {
 		/// The desired size of the UI element.  If <see langword="null"/>, the element will not attempt to resize itself.
 		/// </summary>
 		public SizeConstraint? Size { get; set; }
+
+		/// <summary>
+		/// The biases for the <see cref="Constraints"/> of the UI element
+		/// </summary>
+		public ConstraintBias Bias { get; set; } = new ConstraintBias(0.5f, 0.5f);
 
 		/// <summary>
 		/// Sets the alignment of the element with respect to its parent's bounds
@@ -52,6 +58,26 @@ namespace SerousCommonLib.UI.Layouts {
 		/// <param name="maxHeight">The maximum height the element can be resized to</param>
 		public LayoutAttributes WithSize(LayoutUnit width, LayoutUnit height, LayoutUnit? minWidth = default, LayoutUnit? maxWidth = default, LayoutUnit? minHeight = default, LayoutUnit? maxHeight = default) {
 			Size = new SizeConstraint(width, height, minWidth, maxWidth, minHeight, maxHeight);
+			return this;
+		}
+
+		/// <summary>
+		/// Sets the biases for the <see cref="Constraints"/> of the UI element
+		/// </summary>
+		/// <param name="bias">The biases</param>
+		public LayoutAttributes WithBias(ConstraintBias bias) {
+			Bias = bias;
+			return this;
+		}
+
+		/// <summary>
+		/// Sets the biases for the <see cref="Constraints"/> of the UI element
+		/// </summary>
+		/// <param name="horizontalBias">The horizontal bias</param>
+		/// <param name="verticalBias">The vertical bias</param>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public LayoutAttributes WithBias(float horizontalBias, float verticalBias) {
+			Bias = new ConstraintBias(horizontalBias, verticalBias);
 			return this;
 		}
 
@@ -96,11 +122,19 @@ namespace SerousCommonLib.UI.Layouts {
 			return this;
 		}
 
+		private WeakReference<UIElement>? _inheritSizeElement, _inheritGravityElement;
+
 		/// <summary>
 		/// Inherit the size constraints from another UI element
 		/// </summary>
 		/// <param name="element">The element to copy data from</param>
 		public LayoutAttributes InheritSizeFrom(UIElement element) {
+			_inheritSizeElement = new WeakReference<UIElement>(element);
+			SetSizeFromInheritance(element);
+			return this;
+		}
+
+		private void SetSizeFromInheritance(UIElement element) {
 			var width = element.Width;
 			var height = element.Height;
 			var minWidth = element.MinWidth;
@@ -110,8 +144,6 @@ namespace SerousCommonLib.UI.Layouts {
 
 			if (width.Pixels != 0 || width.Percent != 0 || height.Pixels != 0 || height.Percent != 0 || minWidth.Pixels != 0 || minWidth.Percent != 0 || maxWidth.Pixels != 0 || maxWidth.Percent != 0 || minHeight.Pixels != 0 || minHeight.Percent != 0 || maxHeight.Pixels != 0 || maxHeight.Percent != 0)
 				Size = new SizeConstraint(width, height, minWidth, maxWidth, minHeight, maxHeight);
-
-			return this;
 		}
 
 		/// <summary>
@@ -119,17 +151,28 @@ namespace SerousCommonLib.UI.Layouts {
 		/// </summary>
 		/// <param name="element">The element to copy data from</param>
 		public LayoutAttributes InheritGravityFrom(UIElement element) {
+			_inheritGravityElement = new WeakReference<UIElement>(element);
+			SetGravityFromInheritance(element);
+			return this;
+		}
+
+		private void SetGravityFromInheritance(UIElement element) {
 			if (element.HAlign != 0 || element.VAlign != 0) {
 				LayoutGravityType type = LayoutGravityType.None;
 				if (element.HAlign != 0)
 					type |= LayoutGravityType.CenterHorizontal;
 				if (element.VAlign != 0)
 					type |= LayoutGravityType.CenterVertical;
-
 				Gravity = new LayoutGravity(type, new LayoutUnit(percent: element.HAlign), new LayoutUnit(percent: element.VAlign));
 			}
+		}
 
-			return this;
+		internal void CheckInheritance() {
+			if (_inheritSizeElement?.TryGetTarget(out UIElement? element) is true)
+				SetSizeFromInheritance(element);
+
+			if (_inheritGravityElement?.TryGetTarget(out element) is true)
+				SetGravityFromInheritance(element);
 		}
 	}
 }
