@@ -54,7 +54,7 @@ namespace SerousCommonLib.UI.Layouts {
 			set { }
 		}
 
-		public ReadOnlyCalculatedLayout(UIElement? source) : base(source, null) { }
+		public ReadOnlyCalculatedLayout(UIElement? source, CalculatedLayout parent) : base(source, null, parent) { }
 
 		public override void ToTerrariaDimensions(UIElement element, out CalculatedStyle innerDims, out CalculatedStyle dims, out CalculatedStyle outerDims) {
 			if (source?.TryGetTarget(out UIElement? sourceElement) is not true) {

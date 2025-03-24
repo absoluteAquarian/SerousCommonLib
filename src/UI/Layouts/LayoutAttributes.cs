@@ -39,6 +39,17 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		/// <summary>
+		/// Sets the alignment of the element with respect to its parent's bounds
+		/// </summary>
+		/// <param name="type">The gravity type</param>
+		/// <param name="horizontal">The horizontal offset</param>
+		/// <param name="vertical">The vertical offset</param>
+		public LayoutAttributes WithGravity(LayoutGravityType type, LayoutUnit horizontal = default, LayoutUnit vertical = default) {
+			Gravity = new LayoutGravity(type, horizontal, vertical);
+			return this;
+		}
+
+		/// <summary>
 		/// Sets the desired size of the UI element
 		/// </summary>
 		/// <param name="size">The size to attempt to resize to</param>
@@ -125,7 +136,8 @@ namespace SerousCommonLib.UI.Layouts {
 		private WeakReference<UIElement>? _inheritSizeElement, _inheritGravityElement;
 
 		/// <summary>
-		/// Inherit the size constraints from another UI element
+		/// Inherit the size constraints from another UI element.<br/>
+		/// Using this method will override any changes to <see cref="Size"/>
 		/// </summary>
 		/// <param name="element">The element to copy data from</param>
 		public LayoutAttributes InheritSizeFrom(UIElement element) {
@@ -135,19 +147,12 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void SetSizeFromInheritance(UIElement element) {
-			var width = element.Width;
-			var height = element.Height;
-			var minWidth = element.MinWidth;
-			var maxWidth = element.MaxWidth;
-			var minHeight = element.MinHeight;
-			var maxHeight = element.MaxHeight;
-
-			if (width.Pixels != 0 || width.Percent != 0 || height.Pixels != 0 || height.Percent != 0 || minWidth.Pixels != 0 || minWidth.Percent != 0 || maxWidth.Pixels != 0 || maxWidth.Percent != 0 || minHeight.Pixels != 0 || minHeight.Percent != 0 || maxHeight.Pixels != 0 || maxHeight.Percent != 0)
-				Size = new SizeConstraint(width, height, minWidth, maxWidth, minHeight, maxHeight);
+			Size = new SizeConstraint(element.Width, element.Height, element.MinWidth, element.MaxWidth, element.MinHeight, element.MaxHeight);
 		}
 
 		/// <summary>
-		/// Inherit the <see cref="UIElement.HAlign"/> and <see cref="UIElement.VAlign"/> constraints from another UI element
+		/// Inherit the <see cref="UIElement.HAlign"/> and <see cref="UIElement.VAlign"/> constraints from another UI element.<br/>
+		/// Using this method will override any changes to <see cref="Gravity"/>
 		/// </summary>
 		/// <param name="element">The element to copy data from</param>
 		public LayoutAttributes InheritGravityFrom(UIElement element) {
@@ -157,14 +162,14 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void SetGravityFromInheritance(UIElement element) {
-			if (element.HAlign != 0 || element.VAlign != 0) {
-				LayoutGravityType type = LayoutGravityType.None;
-				if (element.HAlign != 0)
-					type |= LayoutGravityType.CenterHorizontal;
-				if (element.VAlign != 0)
-					type |= LayoutGravityType.CenterVertical;
-				Gravity = new LayoutGravity(type, new LayoutUnit(percent: element.HAlign), new LayoutUnit(percent: element.VAlign));
-			}
+			LayoutGravityType type = LayoutGravityType.None;
+			
+			if (element.HAlign != 0)
+				type |= LayoutGravityType.CenterHorizontal;
+			if (element.VAlign != 0)
+				type |= LayoutGravityType.CenterVertical;
+
+			Gravity = new LayoutGravity(type, new LayoutUnit(percent: element.HAlign), new LayoutUnit(percent: element.VAlign));
 		}
 
 		internal void CheckInheritance() {

@@ -8,7 +8,7 @@ using Terraria.UI;
 #nullable enable
 namespace SerousCommonLib.UI.Layouts {
 	internal class CalculatedLayout {
-		private CalculatedLayout? _parent;
+		private CalculatedLayout _parent;
 		private readonly HashSet<CalculatedLayout> _children = [];
 
 		private readonly Dictionary<LayoutEdge, List<LayoutDimensionLink>> _linksByType = new() {
@@ -18,7 +18,7 @@ namespace SerousCommonLib.UI.Layouts {
 			[LayoutEdge.Bottom] = []
 		};
 
-		public CalculatedLayout? Parent => _parent;
+		public CalculatedLayout Parent => _parent;
 
 		private LayoutDimension _left;
 		public virtual LayoutDimension Left {
@@ -69,12 +69,13 @@ namespace SerousCommonLib.UI.Layouts {
 		public readonly WeakReference<UIElement>? source;
 		public readonly LayoutAttributes? attributes;
 
-		internal CalculatedLayout(UIElement? source, LayoutAttributes? attributes) {
+		internal CalculatedLayout(UIElement? source, LayoutAttributes? attributes, CalculatedLayout parent) {
 			this.source = source.AsWeakReference();
 			this.attributes = attributes;
+			_parent = parent;
 		}
 
-		public static CalculatedLayout GetScreenLayout() => new ReadOnlyCalculatedLayout(null);
+		public static CalculatedLayout GetScreenLayout() => new ReadOnlyCalculatedLayout(null, null!);
 
 		public bool TryGetElement([NotNullWhen(true)] out UIElement? element) {
 			if (source?.TryGetTarget(out element) is not true) {
@@ -109,13 +110,9 @@ namespace SerousCommonLib.UI.Layouts {
 			return this;
 		}
 
-		public CalculatedLayout AssignParent(CalculatedLayout parent) {
-			_parent = parent;
-			parent._children.Add(this);
-			return this;
-		}
-
 		public CalculatedLayout AssignChild(CalculatedLayout child) {
+			child._parent?._children.Remove(child);
+
 			_children.Add(child);
 			child._parent = this;
 			return this;

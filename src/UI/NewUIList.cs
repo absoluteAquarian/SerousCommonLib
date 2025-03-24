@@ -122,13 +122,17 @@ namespace SerousCommonLib.UI {
 
 		/// <inheritdoc/>
 		public override void Recalculate() {
+		//	DestroyChildManagers();
+			base.Recalculate();
+		}
+
+		[Obsolete]
+		private void DestroyChildManagers() {
 			// This element's children should never have alignment constraints
 			foreach (var item in _items) {
 				if (item.GetLayoutManager(LayoutCreationMode.View) is { IsReadOnly: false } manager)
 					manager.Destroy();
 			}
-
-			base.Recalculate();
 		}
 
 		/// <inheritdoc/>

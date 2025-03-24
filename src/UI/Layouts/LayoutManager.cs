@@ -1,8 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using SerousCommonLib.API;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -13,6 +15,7 @@ namespace SerousCommonLib.UI.Layouts {
 	/// An object which handles the position, size and alignment of a UI element.<br/>
 	/// Usage of this object overrides the default logic for calculating the dimensions of the UI element and its children.
 	/// </summary>
+	[Obsolete("This class is part of a new API that is not yet complete.", error: true)]
 	public class LayoutManager {
 		private class Loadable : ILoadable {
 			void ILoadable.Load(Mod mod) { }
@@ -37,10 +40,21 @@ namespace SerousCommonLib.UI.Layouts {
 		/// </summary>
 		public bool IsReadOnly => _layout is ReadOnlyCalculatedLayout;
 
+#if DEBUG
+		/// <summary>
+		/// Whether the layout manager should break when the element is recalculated.  This is useful for debugging layout issues.<br/>
+		/// This property is only available in debug builds of <i>absoluteAquarian Utilities</i>.
+		/// </summary>
+		public bool BreakOnRecalculate { get; set; }
+#endif
+
 		private LayoutManager(UIElement element) {
 			ArgumentNullException.ThrowIfNull(element);
 
 			_elementReference = new WeakReference<UIElement>(element);
+
+			_layout = null!;
+			_screenRoot = null!;
 		}
 
 		internal void Lock() {
@@ -73,10 +87,12 @@ namespace SerousCommonLib.UI.Layouts {
 		public static LayoutManager GetOrCreateManager(UIElement element) => _managers.GetValue(element, static e => new LayoutManager(e));
 
 		private static LayoutManager CreateWatchingManager(UIElement element) {
-			LayoutManager manager = new LayoutManager(element) {
-				_layout = new ReadOnlyCalculatedLayout(element)
+			// Note: There's no point in recursing to the parent's parent since that would be extra work for use case, so just set it to null
+			CalculatedLayout parentLayout = element.Parent is UIElement parent ? new ReadOnlyCalculatedLayout(parent, null!) : CalculatedLayout.GetScreenLayout();
+
+			return new LayoutManager(element) {
+				_layout = new ReadOnlyCalculatedLayout(element, parentLayout)
 			};
-			return manager;
 		}
 
 		/// <summary>
@@ -93,6 +109,11 @@ namespace SerousCommonLib.UI.Layouts {
 
 			if (!_elementReference.TryGetTarget(out UIElement? element))
 				return false;
+
+			#if DEBUG
+			if (BreakOnRecalculate)
+				System.Diagnostics.Debugger.Break();
+			#endif
 
 			ApplyConstraints_Impl(element, GetParentSize(element));
 			return true;
@@ -111,15 +132,13 @@ namespace SerousCommonLib.UI.Layouts {
 		private void ApplyConstraints_Impl(UIElement element, Vector2 parentSize) {
 			_screenRoot = CalculatedLayout.GetScreenLayout();
 
-			ApplyConstraints_Reset(element);
-			ApplyConstraints_Init(element);
-			ApplyConstraints_MoveElementWithinParent(element);
-			ApplyConstraints_CheckConstraints(element, parentSize);
-			ApplyConstraints_CheckConstraints(element, parentSize);  // Second pass to ensure that all constraints are applied correctly
+			// Note: There's no point in recursing to the parent's parent since that would be extra work for use case, so just set it to null
+			var parentLayout = element.Parent is UIElement parent ? new ReadOnlyCalculatedLayout(parent, null!) : _screenRoot;
 
-			// Prevent repeated calculations
-			if (AreModificationsAllowed())
-				Lock();
+			ApplyConstraints_Reset(element, parentLayout);
+			ApplyConstraints_Init(element);
+			ApplyConstraints_MoveElementWithinParent();
+			ApplyConstraints_CheckConstraints(element, parentSize);
 		}
 
 		internal void MirrorToVanilla() {
@@ -136,23 +155,26 @@ namespace SerousCommonLib.UI.Layouts {
 				Unlock();
 		}
 
-		private void ApplyConstraints_Reset(UIElement element) {
+		private void ApplyConstraints_Reset(UIElement element, CalculatedLayout parentLayout) {
 			if (_constraintStack > 0)
 				return;
 
 			if (!IsReadOnly) {
-				_layout = new CalculatedLayout(element, Attributes);
+				// Ensure that the layout has the updated attributes
+				_layout = new CalculatedLayout(element, Attributes, parentLayout);
 				Attributes?.CheckInheritance();
 			} else {
+				// Ensure that no leftover data from the previous calculation bleeds over
+				_layout = new ReadOnlyCalculatedLayout(element, parentLayout);
+				// ReadOnlyCalculatedLayout doesn't use Attributes, so force it to null to be sure
 				Attributes = null;
-				_layout = new ReadOnlyCalculatedLayout(element);
 			}
 
 			foreach (UIElement child in element.Elements) {
 				var manager = child.GetLayoutManager(LayoutCreationMode.View);
 				// Child elements will share the root of the topmost element being processed
 				manager._screenRoot = _screenRoot;
-				manager.ApplyConstraints_Reset(child);
+				manager.ApplyConstraints_Reset(child, _layout);
 			}
 		}
 
@@ -163,11 +185,14 @@ namespace SerousCommonLib.UI.Layouts {
 			if (AreModificationsAllowed()) {
 				// Create any links to anchor dimensions
 				foreach (LayoutConstraint constraint in Attributes.Constraints) {
-					if (!constraint.TryGetAnchor(element, out UIElement? anchor))
-						continue;
+					// Null/invalid anchor implies that the element is anchored to its parent / the screen rather than a specific element
+					// If the anchor was set to the parent directly, we need to use the precalculated layout from Reset rather than a
+					//   read-only view (in the case that the parent doesn't have a layout)
+					CalculatedLayout layout = constraint.anchor?.TryGetTarget(out UIElement? anchor) is true && !object.ReferenceEquals(anchor, element.Parent)
+						? anchor.GetLayoutManager(LayoutCreationMode.View)._layout
+						: _layout.Parent;
 
-					// Null anchor implies that the element is anchored to the entire screen rather than a specific element
-					(GetAnchorLayout(anchor) ?? _screenRoot).LinkDimension(_layout, constraint);
+					layout.LinkDimension(_layout, constraint);
 				}
 			}
 
@@ -182,20 +207,16 @@ namespace SerousCommonLib.UI.Layouts {
 		[MemberNotNullWhen(true, nameof(Attributes))]
 		internal bool AreModificationsAllowed() => Attributes is not null && !IsReadOnly;
 
-		private static CalculatedLayout? GetAnchorLayout(UIElement? anchor) => anchor?.GetLayoutManager(LayoutCreationMode.View)._layout;
-
-		private void ApplyConstraints_MoveElementWithinParent(UIElement element) {
+		private void ApplyConstraints_MoveElementWithinParent() {
 			if (_constraintStack > 0)
 				return;
 
 			if (AreModificationsAllowed()) {
-				// Topmost element has its constraints evaluated first
-				foreach (var constraint in Attributes.Constraints) {
-					if (!constraint.TryGetAnchor(element, out UIElement? anchor))
-						continue;
+				// The parent only has the constraints related to the first element -- the one that called Recalculate() -- at this point
+				CalculatedLayout parent = _layout.Parent;
 
-					new LayoutDimensionLink(_layout, GetAnchorLayout(anchor), constraint).Evaluate();
-				}
+				parent.EvaluateHorizontalConstraints();
+				parent.EvaluateVerticalConstraints();
 			}
 		}
 
@@ -215,6 +236,10 @@ namespace SerousCommonLib.UI.Layouts {
 				LayoutManager childManager = child.GetLayoutManager(LayoutCreationMode.View);
 				childManager.ApplyConstraints_CheckConstraints(child, selfSize);
 			}
+
+			// Prevent repeated calculations
+			if (AreModificationsAllowed())
+				Lock();
 		}
 
 		private void ApplyConstraints_SetVanillaInfo(UIElement element, Vector2 parentSize) {
@@ -241,12 +266,12 @@ namespace SerousCommonLib.UI.Layouts {
 
 			var gravity = Attributes.Gravity;
 			
-			if ((gravity.type & LayoutGravityType.CenterHorizontal) != 0)
+			if ((gravity.type & LayoutGravityType.CenterHorizontal) != 0 && parentSize.X > 0)
 				element.HAlign = gravity.horizontal.GetValueRaw(parentSize.X) / parentSize.X;
 			else
 				element.HAlign = 0;
 			
-			if ((gravity.type & LayoutGravityType.CenterVertical) != 0)
+			if ((gravity.type & LayoutGravityType.CenterVertical) != 0 && parentSize.Y > 0)
 				element.VAlign = gravity.vertical.GetValueRaw(parentSize.Y) / parentSize.Y;
 			else
 				element.VAlign = 0;
@@ -284,6 +309,14 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_HorizontalPass(UIElement element, Vector2 parentSize, SizeConstraint sizeConstraint) {
+			// If no children exist, then the dynamic size should default to zero
+			// Otherwise, the clamping ends up trying to do "Infinity - Infinity", which is "NaN"
+			if (element.Elements.Count == 0) {
+				ReportDynamicSizeWithNoChildren(element);
+				_layout.AssignWidth(0, Attributes!.Gravity, parentSize);
+				return;
+			}
+
 			// Apply the constraints on the children that affect the parent's width
 			Vector2 selfSize = _layout.GetChildContainerSize();
 
@@ -308,6 +341,14 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		private void ApplyConstraints_VerticalPass(UIElement element, Vector2 parentSize, SizeConstraint sizeConstraint) {
+			// If no children exist, then the dynamic size should default to zero
+			// Otherwise, the clamping ends up trying to do "Infinity - Infinity", which is "NaN"
+			if (element.Elements.Count == 0) {
+				ReportDynamicSizeWithNoChildren(element);
+				_layout.AssignHeight(0, Attributes!.Gravity, parentSize);
+				return;
+			}
+
 			// Apply the constraints on the children that affect the parent's height
 			Vector2 selfSize = _layout.GetChildContainerSize();
 
@@ -330,17 +371,41 @@ namespace SerousCommonLib.UI.Layouts {
 
 			_layout.AssignHeight(sizeConstraint.ClampHeight(bottommost - topmost, parentSize.Y), Attributes!.Gravity, parentSize);
 		}
+
+		private static void ReportDynamicSizeWithNoChildren(UIElement element) {
+			StringBuilder sb = new StringBuilder()
+				.AppendLine("Attempted to apply a dynamic size to a UI element with no children, defaulting to zero.")
+				.AppendLine("Element hierarchy:")
+				.AppendJoin("\n  ", GetHierarchyFromTopmostParent(element));
+
+			SerousUtilities.Instance.Logger.Warn(sb.ToString());
+		}
+
+		private static IEnumerable<string> GetHierarchyFromTopmostParent(UIElement element) {
+			UIElement current = element;
+			Stack<UIElement> elements = new Stack<UIElement>();
+
+			while (current is not null) {
+				elements.Push(current);
+				current = current.Parent;
+			}
+
+			while (elements.TryPop(out UIElement? popped))
+				yield return popped.GetType().FullName!;
+		}
 	}
 
 	internal class ElementManagerLink : Edit {
 		public override void LoadEdits() {
-			On_UIElement.Recalculate += On_UIElement_Recalculate;
+			// API isn't ready for deployment yet
+		//	On_UIElement.Recalculate += On_UIElement_Recalculate;
 		}
 
 		public override void UnloadEdits() {
-			On_UIElement.Recalculate -= On_UIElement_Recalculate;
+		//	On_UIElement.Recalculate -= On_UIElement_Recalculate;
 		}
 
+		[Obsolete]
 		private static void On_UIElement_Recalculate(On_UIElement.orig_Recalculate orig, UIElement self) {
 			// Layout overrides the default Recalculate method to apply constraints only if the element has a LayoutManager and the manager has attributes to apply
 			var manager = self.GetLayoutManager(LayoutCreationMode.View);

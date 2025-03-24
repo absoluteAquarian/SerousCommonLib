@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Terraria.UI;
 
@@ -6,6 +7,7 @@ namespace SerousCommonLib.UI.Layouts {
 	/// <summary>
 	/// A variant of <see cref="NewUIList"/> that incorporates a <see cref="BaseOrderedLayout"/> to organize its elements
 	/// </summary>
+	[Obsolete("This class is part of a new API that is not yet complete.", error: true)]
 	public abstract class BaseOrderedLayoutList : BaseClippedList {
 		internal BaseOrderedLayout _innerLayout;
 

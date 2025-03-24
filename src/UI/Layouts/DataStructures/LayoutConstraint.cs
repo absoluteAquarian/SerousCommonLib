@@ -26,17 +26,5 @@ namespace SerousCommonLib.UI.Layouts {
 			this.dimension = dimension;
 			this.type = type;
 		}
-
-		/// <summary>
-		/// Attempts to get the anchor element for the constraint.  If the anchor is <see langword="null"/>, the element's parent is used.
-		/// </summary>
-		public bool TryGetAnchor(UIElement element, out UIElement? anchor) {
-			if (this.anchor is null) {
-				anchor = element.Parent;
-				return true;
-			}
-
-			return this.anchor.TryGetTarget(out anchor);
-		}
 	}
 }

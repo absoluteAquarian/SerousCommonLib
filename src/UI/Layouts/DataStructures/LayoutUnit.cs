@@ -15,11 +15,13 @@ namespace SerousCommonLib.UI.Layouts {
 		/// </summary>
 		public readonly float percent;
 
+		private readonly bool _isDynamic;
+
 		/// <summary>
 		/// A layout dimension that is considered dynamic, i.e. the parent layout's size is dependent on the locations and sizes of its children.<br/>
-		/// If this layout unit is used as a position constraint, it is instead just a zero offset; see <see cref="Zero"/>
+		/// If this layout unit is used as a constraint, it is instead just equivalent to <see cref="Zero"/>
 		/// </summary>
-		public static readonly LayoutUnit DynamicSize = default;
+		public static readonly LayoutUnit DynamicSize = new LayoutUnit(0, 0, true);
 
 		/// <summary>
 		/// A layout dimension with a zero offset
@@ -42,6 +44,14 @@ namespace SerousCommonLib.UI.Layouts {
 
 			this.pixels = pixels;
 			this.percent = percent;
+			_isDynamic = false;
+		}
+
+		// Used by DynamicSize only
+		private LayoutUnit(float pixels, float percent, bool isDynamic) {
+			this.pixels = pixels;
+			this.percent = percent;
+			_isDynamic = isDynamic;
 		}
 
 		/// <summary>
@@ -52,12 +62,29 @@ namespace SerousCommonLib.UI.Layouts {
 		/// <summary>
 		/// Whether this layout dimension is considered dynamic, i.e. the parent layout's size is dependent on the locations and sizes of its children
 		/// </summary>
-		public bool IsDynamic() => pixels == 0 && percent == 0;
+		public bool IsDynamic() => _isDynamic;
 
 		/// <summary>
 		/// Clamps the value of the dimension between the specified minimum and maximum values
 		/// </summary>
-		public static float Clamp(float value, LayoutUnit min, LayoutUnit max, float enclosingSize) => Math.Clamp(value, min.GetValueRaw(enclosingSize), max.GetValueRaw(enclosingSize));
+		public static float Clamp(float value, LayoutUnit min, LayoutUnit max, float enclosingSize) {
+			// If the enclosing parent hasn't been fully initialized, "enclosingSize" can end up being 0, which causes problems
+			// Hence, a simple Math.Clamp() won't suffice here; it expects min <= max
+			// Hence, we don't care if MinX is greater than MaxX, since MinX implies "this element must be at least this size"
+			//  whereas MaxX is typically used to just restrict the size of the element to its parent's bounds
+
+			float minRaw = min.GetValueRaw(enclosingSize);
+
+			if (value < minRaw)
+				return minRaw;
+
+			float maxRaw = max.GetValueRaw(enclosingSize);
+
+			if (value > maxRaw)
+				return maxRaw;
+
+			return value;
+		}
 
 		/// <summary>
 		/// Converts the vanilla <see cref="StyleDimension"/> to a <see cref="LayoutUnit"/>

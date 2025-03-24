@@ -23,7 +23,7 @@ namespace SerousCommonLib.UI.Layouts {
 		}
 
 		public void Evaluate() {
-			Vector2 parentSize = (depdendent.Parent ?? CalculatedLayout.GetScreenLayout()).GetChildContainerSize();
+			Vector2 parentSize = depdendent.Parent.GetChildContainerSize();
 			bool anchorHasElement = anchor.TryGetElement(out UIElement anchorElement);
 
 			switch (type) {

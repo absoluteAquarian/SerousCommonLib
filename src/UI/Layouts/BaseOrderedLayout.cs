@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Terraria.UI;
 
@@ -6,6 +7,7 @@ namespace SerousCommonLib.UI.Layouts {
 	/// <summary>
 	/// The base class for ordered layouts
 	/// </summary>
+	[Obsolete("This class is part of a new API that is not yet complete.", error: true)]
 	public abstract class BaseOrderedLayout : UIElement, IEnumerable<UIElement>, IEnumerable, IOrderedLayout {
 		/// <inheritdoc/>
 		public abstract LayoutConstraintType AlignmentToParent { get; }
