@@ -3,7 +3,9 @@ using System;
 using Terraria.UI;
 
 namespace SerousCommonLib.UI {
-	/// <inheritdoc/>
+	/// <summary>
+	/// Extension methods for <see cref="UIElement"/>
+	/// </summary>
 	public static class UIExtensions {
 		/// <summary>
 		/// Gets the layout manager of the specified element
@@ -20,6 +22,26 @@ namespace SerousCommonLib.UI {
 				LayoutCreationMode.View => LayoutManager.GetManager(element),
 				_ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Specified mode does not exist")
 			};
+		}
+
+		/// <summary>
+		/// This method modifies <see cref="UIElement.Left"/> and <see cref="UIElement.HAlign"/> to set an effective alignment of <paramref name="element"/>'s right edge to the right edge of its parent
+		/// </summary>
+		/// <param name="element">The child element</param>
+		/// <param name="offset">The offset from the parent's right edge.  Positive values move <paramref name="element"/> toward the left edge of its parent.</param>
+		public static void SetRightAlignment(this UIElement element, float offset) {
+			element.Left.Set(-offset, 0f);
+			element.HAlign = 1f;
+		}
+
+		/// <summary>
+		/// This method modifies <see cref="UIElement.Top"/> and <see cref="UIElement.VAlign"/> to set an effective alignment of <paramref name="element"/>'s bottom edge to the bottom edge of its parent
+		/// </summary>
+		/// <param name="element">The child element</param>
+		/// <param name="offset">The offset from the parent's bottom edge.  Positive values move <paramref name="element"/> toward the top edge of its parent.</param>
+		public static void SetBottomAlignment(this UIElement element, float offset) {
+			element.Top.Set(-offset, 0f);
+			element.VAlign = 1f;
 		}
 	}
 }

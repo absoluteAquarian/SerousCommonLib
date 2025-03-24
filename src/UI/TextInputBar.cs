@@ -58,6 +58,12 @@ namespace SerousCommonLib.UI {
 			_bar ??= SerousUtilities.Instance.Assets.Request<Texture2D>("Assets/SearchBar");
 			_mouseFont ??= FontAssets.MouseText;
 
+			// UISearchBar from Magic Storage uses a padding of 4 pixels, so that's kept here for consistency.
+			// However, the only case it was used then was in a UIElement whose height was explicitly set to 32 pixels.
+			// This height will be considered the default "minimum height" for the input bar.
+			this.SetPadding(4);
+			MinHeight.Set(32, 0f);
+
 			State = TextInputTracker.ReserveState(this);
 
 			HintText = hintText;
