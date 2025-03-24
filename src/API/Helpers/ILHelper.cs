@@ -224,7 +224,11 @@ namespace SerousCommonLib.API {
 			type = type[..type.IndexOf(':')];
 			type = type[(type.LastIndexOf('.') + 1)..];
 
-			LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - Before.txt"));
+			try {
+				LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - Before.txt"));
+			} catch (Exception ex) {
+				patchSource.Logger.Error("Failed to log method body for before edits: " + ex.Message);
+			}
 
 			string error = $"Unable to fully patch {il.Method.Name}()";
 			string badReturnReason = error;
@@ -237,7 +241,11 @@ namespace SerousCommonLib.API {
 				return;
 			}
 
-			LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
+			try {
+				LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
+			} catch (Exception ex) {
+				patchSource.Logger.Error("Failed to log method body for after edits: " + ex.Message);
+			}
 		}
 	}
 }

@@ -1,0 +1,4 @@
+﻿1.0.6
+
+- Added a new API for easier handling of text input without relying on the clunky system from the base game
+- Added new UI types for employing easier alignment of child elements within a parent element (see: [i]SerousCommonLib.UI.Layouts[/i])
