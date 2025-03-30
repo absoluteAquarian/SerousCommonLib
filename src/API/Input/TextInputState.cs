@@ -97,6 +97,8 @@ namespace SerousCommonLib.API.Input {
 					_actor.OnActivityGained();
 				else
 					_actor.OnActivityLost();
+
+				_oldActive = _active;
 			}
 
 			if (++_timer >= 60)
@@ -134,18 +136,12 @@ namespace SerousCommonLib.API.Input {
 		/// <summary>
 		/// Activates the text input actor
 		/// </summary>
-		public void Activate() {
-			_oldActive = _active;
-			_active = true;
-		}
+		public void Activate() => _active = true;
 
 		/// <summary>
 		/// Deactivates the text input actor
 		/// </summary>
-		public void Deactivate() {
-			_oldActive = _active;
-			_active = false;
-		}
+		public void Deactivate() => _active = false;
 
 		/// <summary>
 		/// Resets the text input actor, clearing the inputted text or reverting any changes

@@ -128,6 +128,21 @@ namespace SerousCommonLib.UI {
 			State.Reset(clearText: !State.HasFocus);
 		}
 
+		/// <inheritdoc/>
+		public override void OnActivate() {
+			base.OnActivate();
+
+			State.Activate();
+		}
+
+		/// <inheritdoc/>
+		public override void OnDeactivate() {
+			base.OnDeactivate();
+
+			State.Unfocus();
+			State.Deactivate();
+		}
+
 		private const int Padding = 4;
 		private static Asset<Texture2D> _bar;
 		private static Asset<DynamicSpriteFont> _mouseFont;
