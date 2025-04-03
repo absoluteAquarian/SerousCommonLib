@@ -205,7 +205,8 @@ namespace SerousCommonLib.API.Input {
 		/// <b>NOTE:</b>  This method does nothing if <see cref="IsActive"/> returns <see langword="false"/>.
 		/// </summary>
 		public void Unfocus() {
-			if (!ForcedFocus && HasFocus) {
+			// NOTE: ForcedFocus should not be checked here, since preventing unfocusing here would conflict with "unfocus and deactivate" logic
+			if (IsActive && HasFocus) {
 				_focused = false;
 				_actor.OnInputFocusLost();
 				TextInputTracker.CheckInputBlocking();
