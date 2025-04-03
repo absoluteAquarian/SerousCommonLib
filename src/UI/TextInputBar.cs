@@ -205,7 +205,7 @@ namespace SerousCommonLib.UI {
 
 			spriteBatch.DrawString(font, text, new Vector2(dim.X + Padding, dim.Y + Padding), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 
-			if (hasText && State.CursorBlink) {
+			if (hasText && State.IsActive && State.CursorBlink) {
 				float drawCursor = font.MeasureString(text[..State.CursorLocation]).X * scale;
 				spriteBatch.DrawString(font, "|", new Vector2(dim.X + Padding + drawCursor, dim.Y + Padding), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 			}

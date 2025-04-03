@@ -34,7 +34,7 @@ namespace SerousCommonLib.API.Input {
 		public bool HasChanges => _text.ToString() != _initialText;
 
 		/// <summary>
-		/// Whether the text input actor is active
+		/// Whether the text input actor can be interacted with
 		/// </summary>
 		public bool IsActive => _active;
 
@@ -92,37 +92,37 @@ namespace SerousCommonLib.API.Input {
 					_actor.OnActivityGained();
 				else
 					_actor.OnActivityLost();
-
-				_oldActive = _active;
 			}
 
-			if (++_timer >= 60)
-				_timer = 0;
+			if (_active) {
+				if (++_timer >= 60)
+					_timer = 0;
 
-			if (ForcedFocus)
-				Focus();
-			else if (!hoveringMouse && (LegacyMouseInput.MouseClicked || LegacyMouseInput.RightMouseClicked))
-				Unfocus();
+				if (ForcedFocus)
+					Focus();
+				else if (!hoveringMouse && (LegacyMouseInput.MouseClicked || LegacyMouseInput.RightMouseClicked))
+					Unfocus();
 
-			if (_active && _focused) {
-				// Read from IME and update the text
-				Main.blockInput = true;
-				Main.drawingPlayerChat = false;
-				Main.CurrentInputTextTakerOverride = this;
+				if (_focused) {
+					// Read from IME and update the text
+					Main.blockInput = true;
+					Main.drawingPlayerChat = false;
+					Main.CurrentInputTextTakerOverride = this;
 
-				int length = _text.Length;
+					int length = _text.Length;
 				
-				RawTextIME.Handle(_text, ref _cursor, _actor.Controller);
+					RawTextIME.Handle(_text, ref _cursor, _actor.Controller);
 
-				if (_text.Length != length)
-					_actor.OnInputChanged();
+					if (_text.Length != length)
+						_actor.OnInputChanged();
 
-				if (Main.inputTextEnter) {
-					_actor.OnInputEnter();
-					if (LoseFocusOnEnter)
-						Unfocus();
-				} else if (Main.inputTextEscape)
-					Reset(clearText: false);
+					if (Main.inputTextEnter) {
+						_actor.OnInputEnter();
+						if (LoseFocusOnEnter)
+							Unfocus();
+					} else if (Main.inputTextEscape)
+						Reset(clearText: false);
+				}
 			}
 
 			_oldActive = _active;
@@ -139,10 +139,14 @@ namespace SerousCommonLib.API.Input {
 		public void Deactivate() => _active = false;
 
 		/// <summary>
-		/// Resets the text input actor, clearing the inputted text or reverting any changes
+		/// Resets the text input actor, clearing the inputted text or reverting any changes.<br/>
+		/// <b>NOTE:</b>  This method does nothing if <see cref="IsActive"/> returns <see langword="false"/>.
 		/// </summary>
 		/// <param name="clearText">Whether the text should be cleared entirely or any changes be reverted</param>
 		public void Reset(bool clearText = true) {
+			if (!IsActive)
+				return;
+
 			if (!clearText) {
 				_text.Clear().Append(_initialText);
 				_cursor = _text.Length;
@@ -156,9 +160,13 @@ namespace SerousCommonLib.API.Input {
 		}
 
 		/// <summary>
-		/// Clears the text input actor
+		/// Clears the text input actor.<br/>
+		/// <b>NOTE:</b>  This method does nothing if <see cref="IsActive"/> returns <see langword="false"/>.
 		/// </summary>
 		public void Clear() {
+			if (!IsActive)
+				return;
+
 			_text.Clear();
 			_initialText = string.Empty;
 			_cursor = 0;
@@ -166,9 +174,13 @@ namespace SerousCommonLib.API.Input {
 		}
 
 		/// <summary>
-		/// Sets the text input actor's input text and forces the cursor to the end of the text
+		/// Sets the text input actor's input text and forces the cursor to the end of the text.<br/>
+		/// <b>NOTE:</b>  This method does nothing if <see cref="IsActive"/> returns <see langword="false"/>.
 		/// </summary>
 		public void Set(string text) {
+			if (!IsActive)
+				return;
+
 			_text.Clear().Append(text);
 			_initialText = text;
 			_cursor = _text.Length;
@@ -176,10 +188,11 @@ namespace SerousCommonLib.API.Input {
 		}
 
 		/// <summary>
-		/// Attempts to gain focus for the text input actor
+		/// Attempts to gain focus for the text input actor.<br/>
+		/// <b>NOTE:</b>  This method does nothing if <see cref="IsActive"/> returns <see langword="false"/>.
 		/// </summary>
 		public void Focus() {
-			if (!_focused) {
+			if (IsActive && !HasFocus) {
 				Main.blockInput = true;
 				_focused = true;
 				_cursor = _text.Length;
@@ -188,10 +201,11 @@ namespace SerousCommonLib.API.Input {
 		}
 
 		/// <summary>
-		/// Attempts to lose focus for the text input actor
+		/// Attempts to lose focus for the text input actor.<br/>
+		/// <b>NOTE:</b>  This method does nothing if <see cref="IsActive"/> returns <see langword="false"/>.
 		/// </summary>
 		public void Unfocus() {
-			if (!ForcedFocus && _focused) {
+			if (!ForcedFocus && HasFocus) {
 				_focused = false;
 				_actor.OnInputFocusLost();
 				TextInputTracker.CheckInputBlocking();
@@ -205,7 +219,7 @@ namespace SerousCommonLib.API.Input {
 		/// If the text input actor is set to hide its contents, the text is replaced with asterisks.
 		/// </summary>
 		public string GetCurrentText() {
-			if (_text.Length <= 0)
+			if (!HasText)
 				return _actor.HintText.Value;
 
 			if (HideContents) {
