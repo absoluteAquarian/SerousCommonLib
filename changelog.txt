@@ -7,3 +7,4 @@ You can find the DLL, PDB and XML files in the mod's [url=https://github.com/abs
 - Added a new [i]SerousCommonLib.API.UIExtensions[/i] class which contains extension methods for [i]UIElement[/i]
 - Removed usage of reflection in favor of an assembly publicizer tool
 - Removed the built-in sorting logic in [i]NewUIList[/i] since it complicated the backend logic
+- Fixed a bug where [i]NewUIList[/i] would sometimes not organize its child elements correctly

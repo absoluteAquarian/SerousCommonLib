@@ -137,17 +137,35 @@ namespace SerousCommonLib.UI {
 
 		/// <inheritdoc/>
 		public override void RecalculateChildren() {
+			base.RecalculateChildren();
+
+			bool vertical = AlignmentMode is ElementAlignmentMode.Vertical;
+
 			if (ReversedOrder) {
-				float num = ListPadding;
+				float num = 0;
 				foreach (UIElement item in _items.Reverse<UIElement>()) {
-					item.Top.Set(num, 0f);
-					num += item.MinHeight.Pixels + ListPadding;
+					if (vertical) {
+						item.Top.Set(num, 0f);
+						item.Recalculate();
+						num += item.GetOuterDimensions().Height + ListPadding;
+					} else {
+						item.Left.Set(num, 0f);
+						item.Recalculate();
+						num += item.GetOuterDimensions().Width + ListPadding;
+					}
 				}
 			} else {
-				float num2 = ListPadding;
+				float num2 = 0;
 				foreach (UIElement item in _items) {
-					item.Top.Set(num2, 0f);
-					num2 += item.MinHeight.Pixels + ListPadding;
+					if (vertical) {
+						item.Top.Set(num2, 0f);
+						item.Recalculate();
+						num2 += item.GetOuterDimensions().Height + ListPadding;
+					} else {
+						item.Left.Set(num2, 0f);
+						item.Recalculate();
+						num2 += item.GetOuterDimensions().Width + ListPadding;
+					}
 				}
 			}
 		}
