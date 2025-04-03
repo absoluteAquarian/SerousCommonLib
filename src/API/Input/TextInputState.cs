@@ -39,11 +39,6 @@ namespace SerousCommonLib.API.Input {
 		public bool IsActive => _active;
 
 		/// <summary>
-		/// Whether the text input actor was disabled in the current game tick
-		/// </summary>
-		public bool WasActive => _oldActive;
-
-		/// <summary>
 		/// The current cursor location in the text input actor
 		/// </summary>
 		public int CursorLocation => _cursor;
