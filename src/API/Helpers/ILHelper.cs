@@ -1,6 +1,7 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,12 @@ namespace SerousCommonLib.API {
 	/// A helper class for manipulating and logging <see cref="ILCursor"/> objects
 	/// </summary>
 	public static class ILHelper {
+		private static readonly HashSet<string> _autologgingSources = [];
+
+		internal static void ClearPatchSources() {
+			_autologgingSources.Clear();
+		}
+
 		internal static void PrepareInstruction(Instruction instr, out string offset, out string opcode, out string operand) {
 			offset = $"IL_{instr.Offset:X5}:";
 
@@ -43,6 +50,30 @@ namespace SerousCommonLib.API {
 			int index = 0;
 
 			Directory.CreateDirectory(new FileInfo(logFilePath).DirectoryName!);
+
+			// If the file already exists, add a numeric suffix to avoid overwriting
+			if (File.Exists(logFilePath)) {
+				logFilePath = Path.GetFileNameWithoutExtension(logFilePath);
+
+				// Special cases for CommonPatchingWrapper
+				bool hasAfter = false, hasBefore = false;
+				if (logFilePath.EndsWith(" - After")) {
+					hasAfter = true;
+					logFilePath = logFilePath[..^8]; // Remove " - After"
+				} else if (logFilePath.EndsWith(" - Before")) {
+					hasBefore = true;
+					logFilePath = logFilePath[..^9]; // Remove " - Before"
+				}
+
+				int suffix = 1;
+				string specialSuffix = hasBefore ? " - Before" : hasAfter ? " - After" : "";
+				string newPath;
+				do {
+					newPath = $"{logFilePath} ({suffix}){specialSuffix}.txt";
+				} while (File.Exists(newPath));
+
+				logFilePath = newPath;
+			}
 
 			FileStream file = File.Open(logFilePath, FileMode.Create);
 
@@ -211,6 +242,18 @@ namespace SerousCommonLib.API {
 			string modName = patchSource.GetType().Namespace!;
 
 			string localDir = Path.Combine(Program.SavePath, "aA Mods", modName);
+
+			// Clear the directory if this is the first patch applied by the mod
+			if (_autologgingSources.Add(modName)) {
+				try {
+					if (Directory.Exists(localDir))
+						Directory.Delete(localDir, true);
+
+					Directory.CreateDirectory(localDir);
+				} catch (Exception ex) {
+					patchSource.Logger.Error("Failed to clear patch source directory: " + ex.Message);
+				}
+			}
 
 			// Get the method name
 			string method = c.Method.Name;
