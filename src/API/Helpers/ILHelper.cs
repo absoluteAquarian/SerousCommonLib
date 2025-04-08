@@ -246,10 +246,12 @@ namespace SerousCommonLib.API {
 			// Clear the directory if this is the first patch applied by the mod
 			if (_autologgingSources.Add(modName)) {
 				try {
-					if (Directory.Exists(localDir))
-						Directory.Delete(localDir, true);
-
-					Directory.CreateDirectory(localDir);
+					if (Directory.Exists(localDir)) {
+						foreach (var file in Directory.GetFiles(localDir)) {
+							File.SetAttributes(file, FileAttributes.Normal);  // Ensure that the file can actually be deleted
+							File.Delete(file);
+						}
+					}
 				} catch (Exception ex) {
 					patchSource.Logger.Error("Failed to clear patch source directory: " + ex.Message);
 				}
