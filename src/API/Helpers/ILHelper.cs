@@ -244,18 +244,8 @@ namespace SerousCommonLib.API {
 			string localDir = Path.Combine(Program.SavePath, "aA Mods", modName);
 
 			// Clear the directory if this is the first patch applied by the mod
-			if (_autologgingSources.Add(modName)) {
-				try {
-					if (Directory.Exists(localDir)) {
-						foreach (var file in Directory.GetFiles(localDir)) {
-							File.SetAttributes(file, FileAttributes.Normal);  // Ensure that the file can actually be deleted
-							File.Delete(file);
-						}
-					}
-				} catch (Exception ex) {
-					patchSource.Logger.Error("Failed to clear patch source directory: " + ex.Message);
-				}
-			}
+			if (_autologgingSources.Add(modName))
+				DestroyOldLogs(patchSource, localDir);
 
 			// Get the method name
 			string method = c.Method.Name;
@@ -290,6 +280,39 @@ namespace SerousCommonLib.API {
 				LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
 			} catch (Exception ex) {
 				patchSource.Logger.Error("Failed to log method body for after edits: " + ex.Message);
+			}
+		}
+
+		private static void DestroyOldLogs(Mod patchSource, string localDir) {
+			try {
+				if (!Directory.Exists(localDir))
+					return;
+
+				Stack<DirectoryInfo> directories = new();
+				Queue<DirectoryInfo> findingSubirectories = new();
+
+				findingSubirectories.Enqueue(new(localDir));
+
+				// Find all subdirectories manually
+				while (findingSubirectories.TryDequeue(out var current)) {
+					directories.Push(current);
+
+					foreach (var subdir in current.GetDirectories())
+						findingSubirectories.Enqueue(subdir);
+				}
+
+				// ... then process the files in each directory
+				while (directories.TryPop(out var current)) {
+					foreach (var file in current.GetFiles()) {
+						file.Attributes = FileAttributes.Normal;  // Ensure that the file can actually be deleted
+						file.Delete();
+					}
+
+					current.Attributes = FileAttributes.Normal;  // Ensure that the directory can actually be deleted
+					current.Delete();
+				}
+			} catch (Exception ex) {
+				patchSource.Logger.Error("Failed to clear patch source directory: " + ex.Message);
 			}
 		}
 	}
