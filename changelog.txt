@@ -1,11 +1,4 @@
-﻿[h1]v1.0.6[/h1]
-You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6]GitHub repository[/url]
+﻿[h1]v1.0.6.1[/h1]
+You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6.1]GitHub repository[/url]
 
-- Added new methods to [i]LootHelper[/i]
-- Added a rule condition: [i]LambdaRuleCondition[/i]
-- Added exception catching when attempting to log IL edits made by [i]ILHelper[/i]
-- Added a new [i]SerousCommonLib.API.UIExtensions[/i] class which contains extension methods for [i]UIElement[/i]
-- Added a helper class for converting between [i]System.Guid[/i] and [i]Terraria.ModLoader.IO.TagCompound[/i]
-- Removed usage of reflection in favor of an assembly publicizer tool
-- Removed the built-in sorting logic in [i]NewUIList[/i] since it complicated the backend logic
-- Fixed a bug where [i]NewUIList[/i] would sometimes not organize its child elements correctly
+- Added an option to not record log files when using [i]ILHelper.CommonPatchingWrapper()[/i] since it was likely causing other mods to not load properly, plus it is more of a debugging feature

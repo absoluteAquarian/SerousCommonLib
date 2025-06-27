@@ -220,7 +220,7 @@ namespace SerousCommonLib.API {
 		/// <remarks>The generated log file will be at <c>Documents/My Games/Terraria/tModLoader/aA Mods/ModName/</c></remarks>
 		/// <exception cref="Exception"/>
 		public static void CommonPatchingWrapper(ILContext il, Mod patchSource, PatchingContextDelegate doEdits) {
-			CommonPatchingWrapper(il, patchSource, true, doEdits);
+			CommonPatchingWrapper(il, patchSource, true, false, doEdits);
 		}
 
 		/// <summary>
@@ -233,6 +233,20 @@ namespace SerousCommonLib.API {
 		/// <remarks>The generated log file will be at <c>Documents/My Games/Terraria/tModLoader/aA Mods/ModName/</c></remarks>
 		/// <exception cref="Exception"/>
 		public static void CommonPatchingWrapper(ILContext il, Mod patchSource, bool throwOnFail, PatchingContextDelegate doEdits) {
+			CommonPatchingWrapper(il, patchSource, throwOnFail, false, doEdits);
+		}
+
+		/// <summary>
+		/// This method logs the instructions within the method tied to <paramref name="il"/>, invokes <paramref name="doEdits"/> and then logs the instructions within the method again.
+		/// </summary>
+		/// <param name="il">The context</param>
+		/// <param name="patchSource">Which mod is performing the edits. This affects the output directory of the file</param>
+		/// <param name="throwOnFail">Whether an exception should be thrown if <paramref name="doEdits"/> fails</param>
+		/// <param name="writeLogFiles">Whether the method should write log files to the <c>tModLoader/aA Mods/</c> directory</param>
+		/// <param name="doEdits">The delegate used to perform the edit</param>
+		/// <remarks>The generated log file will be at <c>Documents/My Games/Terraria/tModLoader/aA Mods/ModName/</c></remarks>
+		/// <exception cref="Exception"/>
+		public static void CommonPatchingWrapper(ILContext il, Mod patchSource, bool throwOnFail, bool writeLogFiles, PatchingContextDelegate doEdits) {
 			ArgumentNullException.ThrowIfNull(doEdits);
 
 			ILCursor c = new(il);
@@ -241,28 +255,35 @@ namespace SerousCommonLib.API {
 			// Can't use "Mod.Name" since that uses "Mod.File" which might be null
 			string modName = patchSource.GetType().Namespace!;
 
-			string localDir = Path.Combine(Program.SavePath, "aA Mods", modName);
+			string localDir = null;
+
+			if (writeLogFiles)
+				localDir = Path.Combine(Program.SavePath, "aA Mods", modName);
 
 			// Clear the directory if this is the first patch applied by the mod
 			if (_autologgingSources.Add(modName))
 				DestroyOldLogs(patchSource, localDir);
 
-			// Get the method name
-			string method = c.Method.Name;
-			if (!method.Contains("ctor"))
-				method = method[(method.LastIndexOf(':') + 1)..];
-			else
-				method = method[method.LastIndexOf('.')..];
+			string method = null;
+			string type = null;
+			if (writeLogFiles) {
+				// Get the method name
+				method = c.Method.Name;
+				if (!method.Contains("ctor"))
+					method = method[(method.LastIndexOf(':') + 1)..];
+				else
+					method = method[method.LastIndexOf('.')..];
 
-			// Get the class name
-			string type = c.Method.Name;
-			type = type[..type.IndexOf(':')];
-			type = type[(type.LastIndexOf('.') + 1)..];
+				// Get the class name
+				type = c.Method.Name;
+				type = type[..type.IndexOf(':')];
+				type = type[(type.LastIndexOf('.') + 1)..];
 
-			try {
-				LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - Before.txt"));
-			} catch (Exception ex) {
-				patchSource.Logger.Error("Failed to log method body for before edits: " + ex.Message);
+				try {
+					LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - Before.txt"));
+				} catch (Exception ex) {
+					patchSource.Logger.Error("Failed to log method body for before edits: " + ex.Message);
+				}
 			}
 
 			string error = $"Unable to fully patch {il.Method.Name}()";
@@ -276,10 +297,12 @@ namespace SerousCommonLib.API {
 				return;
 			}
 
-			try {
-				LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
-			} catch (Exception ex) {
-				patchSource.Logger.Error("Failed to log method body for after edits: " + ex.Message);
+			if (!writeLogFiles) {
+				try {
+					LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
+				} catch (Exception ex) {
+					patchSource.Logger.Error("Failed to log method body for after edits: " + ex.Message);
+				}
 			}
 		}
 
