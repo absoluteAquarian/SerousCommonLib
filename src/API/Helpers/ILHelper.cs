@@ -255,10 +255,7 @@ namespace SerousCommonLib.API {
 			// Can't use "Mod.Name" since that uses "Mod.File" which might be null
 			string modName = patchSource.GetType().Namespace!;
 
-			string localDir = null;
-
-			if (writeLogFiles)
-				localDir = Path.Combine(Program.SavePath, "aA Mods", modName);
+			string localDir = Path.Combine(Program.SavePath, "aA Mods", modName);
 
 			// Clear the directory if this is the first patch applied by the mod
 			if (_autologgingSources.Add(modName))
@@ -297,7 +294,7 @@ namespace SerousCommonLib.API {
 				return;
 			}
 
-			if (!writeLogFiles) {
+			if (writeLogFiles) {
 				try {
 					LogMethodBody(c, Path.Combine(localDir, $"{type}.{method} - After.txt"));
 				} catch (Exception ex) {
