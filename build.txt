@@ -1,4 +1,4 @@
 displayName = absoluteAquarian Utilities (SerousCommonLib)
 author = absoluteAquarian
-version = 1.0.6.1
+version = 1.0.6.2
 buildIgnore = Publicizer/*

@@ -1,4 +1,4 @@
-﻿[h1]v1.0.6.1[/h1]
-You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6.1]GitHub repository[/url]
+﻿[h1]v1.0.6.2[/h1]
+You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6.2]GitHub repository[/url]
 
-- Added an option to not record log files when using [i]ILHelper.CommonPatchingWrapper()[/i] since it was likely causing other mods to not load properly, plus it is more of a debugging feature
+- Fixed a bug where the Left/Right arrow controls for [i]RawTextIME[/i] — used by [i]TextInputState[/i] and [i]TextInputBar[/i] — could place the cursor out of bounds

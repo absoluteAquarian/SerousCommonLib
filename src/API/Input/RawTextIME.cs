@@ -192,11 +192,13 @@ namespace SerousCommonLib.API.Input {
 				backSpaceCount = 15;
 			}
 
-			if (KeyTyped(Keys.Left) && cursor > 0) {
-				cursor--;
+			if (KeyTyped(Keys.Left)) {
+				if (cursor > 0)
+					cursor--;
 				goto cleanup;
 			} else if (KeyTyped(Keys.Right)) {
-				cursor++;
+				if (cursor < text.Length)
+					cursor++;
 				goto cleanup;
 			} else if (KeyTyped(Keys.Home)) {
 				cursor = 0;
@@ -204,8 +206,9 @@ namespace SerousCommonLib.API.Input {
 			} else if (KeyTyped(Keys.End)) {
 				cursor = text.Length;
 				goto cleanup;
-			} else if (canDeleteAKey && cursor > 0) {
-				text.Remove(--cursor, 1);
+			} else if (canDeleteAKey) {
+				if (cursor > 0)
+					text.Remove(--cursor, 1);
 				goto cleanup;
 			}
 
