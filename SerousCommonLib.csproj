@@ -1,5 +1,4 @@
-﻿
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\tModLoader.targets" />
   <PropertyGroup>
     <AssemblyName>SerousCommonLib</AssemblyName>
@@ -7,21 +6,28 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <AdditionalFiles Remove="Publicizer\**" />
+    <Compile Remove="Publicizer\**" />
+    <EmbeddedResource Remove="Publicizer\**" />
+    <None Remove="Publicizer\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="C:\Users\jruss\.nuget\packages\krafs.publicizer\2.2.1\contentfiles\cs\any\Publicizer\IgnoresAccessChecksToAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
 	  
 	<PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all" />
 	  
 	<Publicize Include="tModLoader" />
-	  
+
+	<DoNotPublicize Include="tModLoader:Terraria.ModLoader.ModType`2.CloneNewInstances" />
+	<DoNotPublicize Include="tModLoader:Terraria.ModLoader.ModType.InitTemplateInstance" />
+	<DoNotPublicize Include="tModLoader:Terraria.ModLoader.ModType.Register" />
+	<DoNotPublicize Include="tModLoader:Terraria.ModLoader.ModType.ValidateType" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.OnLeftMouseDown" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.OnLeftMouseUp" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.OnLeftClick" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.DrawSelf" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.DrawChildren" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Remove="Publicizer\**" />
-    <Compile Remove="Publicizer\**" />
-    <EmbeddedResource Remove="Publicizer\**" />
-    <None Remove="Publicizer\**" />
   </ItemGroup>
 </Project>

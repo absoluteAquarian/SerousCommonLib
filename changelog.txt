@@ -1,4 +1,4 @@
-﻿[h1]v1.0.6.2[/h1]
+﻿[h1]v1.0.7[/h1]
 You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6.2]GitHub repository[/url]
 
-- Fixed a bug where the Left/Right arrow controls for [i]RawTextIME[/i] — used by [i]TextInputState[/i] and [i]TextInputBar[/i] — could place the cursor out of bounds
+- Added the [i]BaseCallFunction[/i] API from Magic Storage
