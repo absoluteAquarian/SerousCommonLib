@@ -29,5 +29,7 @@
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.OnLeftClick" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.DrawSelf" />
 	<DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.DrawChildren" />
+
+	  <Publicize Include="FNA" />
   </ItemGroup>
 </Project>

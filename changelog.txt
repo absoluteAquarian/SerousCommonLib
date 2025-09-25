@@ -2,3 +2,4 @@
 You can find the DLL, PDB and XML files in the mod's [url=https://github.com/absoluteAquarian/SerousCommonLib/releases/tag/v1.0.6.2]GitHub repository[/url]
 
 - Added the [i]BaseCallFunction[/i] API from Magic Storage
+- Added a new [i]SpriteBatchCapture[/i] class for capturing [i]SpriteBatch.Begin()[/i] parameters
