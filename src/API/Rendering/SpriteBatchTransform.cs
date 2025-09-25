@@ -36,7 +36,9 @@ public class SpriteBatchTransform {
 	/// </summary>
 	/// <param name="adjustmentMatrix"></param>
 	public void ApplyTransform(Matrix adjustmentMatrix) {
-		// Copied from: https://github.com/tModLoader/FNA/blob/2d16be6c66ffa9a157ff1bb50ffe215558b40394/src/Graphics/SpriteBatch.cs#L1423
+		Matrix transform = transformMatrix * adjustmentMatrix;
+
+		// Original: https://github.com/tModLoader/FNA/blob/2d16be6c66ffa9a157ff1bb50ffe215558b40394/src/Graphics/SpriteBatch.cs#L1423
 
 		Viewport viewport = spriteBatch.GraphicsDevice.Viewport;
 
@@ -46,22 +48,22 @@ public class SpriteBatchTransform {
 		unsafe
 		{
 			float* dstPtr = (float*) spriteMatrixTransform;
-			dstPtr[0] = (tfWidth * transformMatrix.M11) - transformMatrix.M14;
-			dstPtr[1] = (tfWidth * transformMatrix.M21) - transformMatrix.M24;
-			dstPtr[2] = (tfWidth * transformMatrix.M31) - transformMatrix.M34;
-			dstPtr[3] = (tfWidth * transformMatrix.M41) - transformMatrix.M44;
-			dstPtr[4] = (tfHeight * transformMatrix.M12) + transformMatrix.M14;
-			dstPtr[5] = (tfHeight * transformMatrix.M22) + transformMatrix.M24;
-			dstPtr[6] = (tfHeight * transformMatrix.M32) + transformMatrix.M34;
-			dstPtr[7] = (tfHeight * transformMatrix.M42) + transformMatrix.M44;
-			dstPtr[8] = transformMatrix.M13;
-			dstPtr[9] = transformMatrix.M23;
-			dstPtr[10] = transformMatrix.M33;
-			dstPtr[11] = transformMatrix.M43;
-			dstPtr[12] = transformMatrix.M14;
-			dstPtr[13] = transformMatrix.M24;
-			dstPtr[14] = transformMatrix.M34;
-			dstPtr[15] = transformMatrix.M44;
+			dstPtr[0] = (tfWidth * transform.M11) - transform.M14;
+			dstPtr[1] = (tfWidth * transform.M21) - transform.M24;
+			dstPtr[2] = (tfWidth * transform.M31) - transform.M34;
+			dstPtr[3] = (tfWidth * transform.M41) - transform.M44;
+			dstPtr[4] = (tfHeight * transform.M12) + transform.M14;
+			dstPtr[5] = (tfHeight * transform.M22) + transform.M24;
+			dstPtr[6] = (tfHeight * transform.M32) + transform.M34;
+			dstPtr[7] = (tfHeight * transform.M42) + transform.M44;
+			dstPtr[8] = transform.M13;
+			dstPtr[9] = transform.M23;
+			dstPtr[10] = transform.M33;
+			dstPtr[11] = transform.M43;
+			dstPtr[12] = transform.M14;
+			dstPtr[13] = transform.M24;
+			dstPtr[14] = transform.M34;
+			dstPtr[15] = transform.M44;
 		}
 
 		// FIXME: When is this actually applied? -flibit
