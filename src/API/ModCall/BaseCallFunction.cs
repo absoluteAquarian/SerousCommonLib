@@ -34,6 +34,19 @@ public abstract class BaseCallFunction : ModType {
 	private static readonly Dictionary<string, Dictionary<string, BaseCallFunction>> _callFunctionLookup = [];
 
 	/// <summary>
+	/// An easy-to-use method for supporting this API in <see cref="Mod.Call"/>
+	/// </summary>
+	public static object Call(Mod caller, object[] args) {
+		if (args.Length < 1)
+			throw new ArgumentException("Call requires at least one argument");
+
+		if (args[0] is not string function)
+			throw new ArgumentException("Expected function name");
+
+		return Find(caller, function).Call(args.AsSpan(1));
+	}
+
+	/// <summary>
 	/// Attempts to find a <see cref="BaseCallFunction"/> in the given mod with the given <see cref="Function"/><br/>
 	/// Throws a <see cref="KeyNotFoundException"/> if one could not be found.
 	/// </summary>
