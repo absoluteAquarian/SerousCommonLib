@@ -2,8 +2,11 @@
 using Microsoft.Xna.Framework;
 using ReLogic.Content;
 using ReLogic.Graphics;
+using ReLogic.Localization.IME;
+using ReLogic.OS;
 using SerousCommonLib.API.Input;
 using System;
+using Terraria;
 using Terraria.GameContent;
 using Terraria.Localization;
 using Terraria.UI;
@@ -203,13 +206,51 @@ namespace SerousCommonLib.UI {
 				}
 			}
 
-			spriteBatch.DrawString(font, text, new Vector2(dim.X + Padding, dim.Y + Padding), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			Vector2 origin = new Vector2(dim.X + Padding, dim.Y + Padding);
+			bool focused = State.IsActive && State.HasFocus;
 
-			if (hasText && State.IsActive && State.CursorBlink) {
-				float drawCursor = font.MeasureString(text[..State.CursorLocation]).X * scale;
-				spriteBatch.DrawString(font, "|", new Vector2(dim.X + Padding + drawCursor, dim.Y + Padding), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			// The IME composition string holds the characters being composed but not yet committed, e.g. the pinyin
+			// typed so far for a Chinese IME. It is not part of the state's text until the IME commits it, so it has
+			// to be drawn separately or the bar looks unresponsive while composing.
+			string composition = focused ? Platform.Get<IImeService>().CompositionString : null;
+			bool hasComposition = !string.IsNullOrEmpty(composition);
+
+			float cursorOffset = hasText ? font.MeasureString(text[..State.CursorLocation]).X * scale : 0f;
+
+			if (!hasComposition)
+			{
+				spriteBatch.DrawString(font, text, origin, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			}
+			else
+			{
+				// Split the text so that the composition is shown at the cursor rather than always at the end
+				float compositionWidth = font.MeasureString(composition).X * scale;
+
+				spriteBatch.DrawString(font, text[..State.CursorLocation], origin, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+				spriteBatch.DrawString(font, composition, origin + new Vector2(cursorOffset, 0f), CompositionColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+				spriteBatch.DrawString(font, text[State.CursorLocation..], origin + new Vector2(cursorOffset + compositionWidth, 0f), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+				cursorOffset += compositionWidth;
+			}
+
+			if (hasText && State.IsActive && State.CursorBlink)
+			{
+				spriteBatch.DrawString(font, "|", origin + new Vector2(cursorOffset, 0f), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			}
+
+			// Terraria hides the OS candidate window and renders the list itself, but only where DrawWindowsIMEPanel is
+			// called. Without this the IME still works and commits characters, but the candidates are invisible.
+			// The panel draws a strip upwards from the anchor, so anchor past the cursor like vanilla's chat does.
+			if (focused)
+			{
+				Main.instance.DrawWindowsIMEPanel(origin + new Vector2(cursorOffset + 10f, -6f));
 			}
 		}
+
+		/// <summary>
+		/// The color used to draw the in-progress IME composition string.  Defaults to the same yellow used by vanilla's chat.
+		/// </summary>
+		protected virtual Color CompositionColor => new Color(255, 240, 20);
 
 		/// <summary>
 		/// Executes before the text for this text input actor is drawn
